@@ -1,8 +1,9 @@
 
 using Discount.Grpc;
 using HealthChecks.UI.Client;
-using JasperFx.Events;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using BuildingBlocks.Messaging.MassTransit;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,6 +43,7 @@ builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(
 {
     options.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]!);
 })
+.AddServiceDiscovery();
 // only for development purposes otherwise use proper certificate
 //.ConfigurePrimaryHttpMessageHandler(() =>
 //{
@@ -53,7 +55,9 @@ builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(
 
 //    return handler;
 //})
-.AddServiceDiscovery();
+
+//Async messaging services
+builder.Services.AddMessageBroker(builder.Configuration);
 
 // Cross cutting services
 builder.Services.AddExceptionHandler<CustomExceptionHandler>();

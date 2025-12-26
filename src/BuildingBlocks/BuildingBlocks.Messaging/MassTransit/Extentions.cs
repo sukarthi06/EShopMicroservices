@@ -18,12 +18,31 @@ public static class Extentions
                 config.AddConsumers(assembly);
 
             config.UsingRabbitMq((context, configurator) =>
-            {
-                configurator.Host(new Uri(configuration["MessageBroker:Host"]!), host =>
+            {                
+                // Check Aspire connection string first
+                var connectionString = configuration.GetConnectionString("rabbitmq");//rabbitmq - The name should match the one set in Aspire
+
+                if (!string.IsNullOrWhiteSpace(connectionString))
                 {
-                    host.Username(configuration["MessageBroker:UserName"]!);
-                    host.Password(configuration["MessageBroker:Password"]!);
+                    configurator.Host(new Uri(connectionString));
+                    configurator.ConfigureEndpoints(context);
+                    return;
+                }
+
+                // Fallback to local/dev configuration
+                var host = configuration["MessageBroker:Host"];
+                var username = configuration["MessageBroker:UserName"] ?? "guest";
+                var password = configuration["MessageBroker:Password"] ?? "guest";
+
+                if (string.IsNullOrWhiteSpace(host))
+                    throw new InvalidOperationException("RabbitMQ host is not configured.");
+
+                configurator.Host(new Uri(host), h =>
+                {
+                    h.Username(username);
+                    h.Password(password);
                 });
+
                 configurator.ConfigureEndpoints(context);
             });
         });
