@@ -416,3 +416,12 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+src/Services/Discount/Discount.Grpc/discountdb
+src/Services/Discount/Discount.Grpc/discountdb-shm
+src/Services/Discount/Discount.Grpc/discountdb-wal
+client/eshop-app/.github/copilot-instructions.md
