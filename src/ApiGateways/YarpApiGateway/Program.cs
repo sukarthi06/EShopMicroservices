@@ -2,9 +2,22 @@ using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
+//if (Environment.GetEnvironmentVariable("ASPIRE_ENABLED") == "true")
+//    builder.AddServiceDefaults();
 
 // Add services to the container.
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("CorsPolicy", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:4200", "http://localhost:8080") // Angular app
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+        //.AllowCredentials(); // only if using cookies/auth
+    });
+});
 
 builder.Services.AddReverseProxy()
     .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
@@ -20,11 +33,13 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
 
 var app = builder.Build();
 
-app.MapDefaultEndpoints();
+//if (Environment.GetEnvironmentVariable("ASPIRE_ENABLED") == "true")
+//    app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 
 app.UseRateLimiter();
+app.UseCors("CorsPolicy");
 app.MapReverseProxy();
 
 app.Run();

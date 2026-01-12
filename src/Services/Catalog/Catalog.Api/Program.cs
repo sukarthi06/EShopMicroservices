@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container. container part.
-builder.AddServiceDefaults();
+
+//builder.AddServiceDefaults();
 
 var assembly = typeof(Program).Assembly;
 
@@ -39,7 +40,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-app.MapDefaultEndpoints();
+//app.MapDefaultEndpoints();
 
 // Configure the http request pipeline.
 app.MapCarter();

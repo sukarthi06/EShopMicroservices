@@ -28,7 +28,7 @@
 
 
 	<ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\EShopMicroservices.Hosting\EShopMicroservices.Hosting.ServiceDefaults\EShopMicroservices.Hosting.ServiceDefaults.csproj" />
+    <!--<ProjectReference Include="..\..\..\..\..\EShopMicroservices.Hosting\EShopMicroservices.Hosting.ServiceDefaults\EShopMicroservices.Hosting.ServiceDefaults.csproj" />-->
     <ProjectReference Include="..\Ordering.Infrastructure\Ordering.Infrastructure.csproj" />
   </ItemGroup>
 

@@ -7,7 +7,7 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
+//builder.AddServiceDefaults();
 
 // Add services to the container.
 // Application services
@@ -43,18 +43,18 @@ builder.Services.AddGrpcClient<DiscountProtoService.DiscountProtoServiceClient>(
 {
     options.Address = new Uri(builder.Configuration["GrpcSettings:DiscountUrl"]!);
 })
-.AddServiceDiscovery();
+//.AddServiceDiscovery();
 // only for development purposes otherwise use proper certificate
-//.ConfigurePrimaryHttpMessageHandler(() =>
-//{
-//    var handler = new HttpClientHandler
-//    {
-//        ServerCertificateCustomValidationCallback =
-//        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-//    };
+.ConfigurePrimaryHttpMessageHandler(() =>
+{
+    var handler = new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback =
+        HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+    };
 
-//    return handler;
-//})
+    return handler;
+});
 
 //Async messaging services
 builder.Services.AddMessageBroker(builder.Configuration);
@@ -68,7 +68,7 @@ builder.Services.AddHealthChecks()
 
 var app = builder.Build();
 
-app.MapDefaultEndpoints();
+//app.MapDefaultEndpoints();
 
 // Configure the HTTP request pipeline.
 app.MapCarter();
