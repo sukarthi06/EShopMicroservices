@@ -1,0 +1,166 @@
+services:
+  catalogdb:    
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=sa
+      - POSTGRES_DB=CatalogDb
+    restart: always
+    ports:
+        - "5435:5432"
+    volumes:
+      - postgres_catalog:/var/lib/postgresql/data/
+
+  basketdb:
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=sa
+      - POSTGRES_DB=BasketDb
+    restart: always
+    ports:
+        - "5436:5432"
+    volumes:
+      - postgres_basket:/var/lib/postgresql/data/
+    healthcheck:  # Add this block
+      test: ["CMD-SHELL", "pg_isready -U postgres -d BasketDb"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  distributedcache:
+    restart: always
+
+  orderdb:
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Password!
+    restart: always
+    ports:
+      - "1431:1433"
+
+  messagebroker:
+    hostname: ecommerce-mq
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    restart: always
+    ports:
+      - "5674:5672"
+      - "15674:15672"
+
+  catalog.api:     
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPIRE_ENABLED=false
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_RUNNING_IN_CONTAINER:true
+      - ASPNETCORE_HTTPS_PORTS:""
+      - ConnectionStrings__CatalogDb=Server=catalogdb;Port=5432;Database=CatalogDb;User Id=postgres;Password=sa;Include Error Detail=true
+    depends_on:
+      - catalogdb
+    ports:
+      - "6011:8080"
+      - "6060:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+  
+  basket.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPIRE_ENABLED=false
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_RUNNING_IN_CONTAINER:true
+      - ASPNETCORE_HTTPS_PORTS:""
+      - ConnectionStrings__BasketDb=Server=basketdb;Port=5432;Database=BasketDb;User Id=postgres;Password=sa;Include Error Detail=true
+      - ConnectionStrings__Redis=distributedcache:6379
+      - GrpcSettings__DiscountUrl=http://discount.grpc:8080
+      - MessageBroker__Host=amqp://ecommerce-mq:5672
+      - MessageBroker__UserName=guest
+      - MessageBroker__Password=guest
+    depends_on:
+      basketdb:
+        condition: service_healthy
+      distributedcache:
+        condition: service_started
+      discount.grpc:
+        condition: service_started
+      messagebroker:
+        condition: service_started
+    ports:
+      - "6012:8080"
+      - "6061:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  discount.grpc:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPIRE_ENABLED=false
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_RUNNING_IN_CONTAINER:true
+      - ASPNETCORE_HTTPS_PORTS:""
+      - ConnectionStrings__DiscountDb=Data Source=discountdb
+    ports:
+      - "6013:8080"
+      - "6062:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  ordering.api:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPIRE_ENABLED=false
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_RUNNING_IN_CONTAINER:true
+      - ASPNETCORE_HTTPS_PORTS:""
+      - ConnectionStrings__OrderDb=Server=orderdb;Database=OrderDb;User Id=sa;Password=Password!;Encrypt=False;TrustServerCertificate=True
+      - MessageBroker__Host=amqp://ecommerce-mq:5672
+      - MessageBroker__UserName=guest
+      - MessageBroker__Password=guest
+      - FeatureManagement__OrderFullfilment=false
+    depends_on:
+      - orderdb
+      - messagebroker
+    ports:
+      - "6014:8080"
+      - "6063:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  yarpapigateway:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPIRE_ENABLED=false
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ASPNETCORE_HTTPS_PORTS=8081
+      - ASPNETCORE_URLS=http://+:8080
+      - DOTNET_RUNNING_IN_CONTAINER:true
+      - ASPNETCORE_HTTPS_PORTS:""
+    depends_on:
+      - catalog.api
+      - basket.api
+      - ordering.api
+    ports:
+      - "6015:8080"
+      - "6064:8081"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/home/app/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/home/app/.aspnet/https:ro
+
+  eshop.ui:
+    depends_on:
+      - yarpapigateway  # Ensures the API gateway starts first for routing
+    ports:
+      - "8080:80"  # Map host port 8080 to container port 80 (adjust if your Dockerfile exposes a different port)

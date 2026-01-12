@@ -1,0 +1,55 @@
+services:
+  catalogdb:
+    image: postgres:17.6
+
+  basketdb:
+    image: postgres:17.6
+
+  distributedcache:
+    image: redis
+
+  orderdb:
+    image: mcr.microsoft.com/mssql/server
+
+  messagebroker:
+    image: rabbitmq:management
+
+  catalog.api:
+    image: ${DOCKER_REGISTRY-}catalog.api
+    build:
+      context: ../src
+      dockerfile: Services/Catalog/Catalog.API/Dockerfile
+
+  basket.api:
+    image: ${DOCKER_REGISTRY-}basketapi
+    build:
+      context: ../src
+      dockerfile: Services/Basket/Basket.Api/Dockerfile
+
+  discount.grpc:
+    image: ${DOCKER_REGISTRY-}discountgrpc
+    build:
+      context: ../src
+      dockerfile: Services/Discount/Discount.Grpc/Dockerfile
+
+  ordering.api:
+    image: ${DOCKER_REGISTRY-}orderingapi
+    build:
+      context: ../src
+      dockerfile: Services/Ordering/Ordering.Api/Dockerfile
+
+  yarpapigateway:
+    image: ${DOCKER_REGISTRY-}yarpapigateway
+    build:
+      context: ../src
+      dockerfile: ApiGateways/YarpApiGateway/Dockerfile
+
+  eshop.ui:
+    image: ${DOCKER_REGISTRY-}eshopui
+    build:
+      context: ../client/eshop-app
+      dockerfile: Dockerfile
+
+volumes:
+  postgres_catalog:
+  postgres_basket:
