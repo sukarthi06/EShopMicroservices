@@ -9,21 +9,24 @@ import { Product } from '../../../types/product';
   styleUrl: './product-list.css',
 })
 export class ProductList implements OnInit {
-    
+  
   protected products = signal<Product[]>([]);
-  protected readonly lastProduct = computed(() => {
-  const items = this.products();
-  return items.length ? items[items.length - 1] : undefined;
-});
   protected productService = inject(ProductService);
+
+  protected readonly lastProduct = computed(() => {
+    const items = this.products();
+    return items.length ? items[items.length - 1] : undefined;
+  });
+
+  protected readonly categories = computed(() =>
+    [...new Set(this.products().flatMap(p => p.category))]
+  );
 
   ngOnInit(): void {
     this.productService.getProducts().subscribe({
-      next: response => {
-  console.log('API response:', response);
-  console.log('Is array?', Array.isArray(response));
-  this.products.set(response.products);
-},
+      next: response => {        
+        this.products.set(response.products);
+      },
       error: error => console.log(error)
     });
   }
