@@ -25,18 +25,21 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 30s
+      start_period: 30s  
 
   distributedcache:
     restart: always
 
-  orderdb:
+  orderdb:    
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Password!
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=sa
+      - POSTGRES_DB=OrderDb
     restart: always
     ports:
-      - "1431:1433"
+        - "5437:5432"
+    volumes:
+      - postgres_order:/var/lib/postgresql/data/
 
   messagebroker:
     hostname: ecommerce-mq
@@ -124,7 +127,7 @@ services:
       - ASPNETCORE_URLS=http://+:8080
       - DOTNET_RUNNING_IN_CONTAINER:true
       - ASPNETCORE_HTTPS_PORTS:""
-      - ConnectionStrings__OrderDb=Server=orderdb;Database=OrderDb;User Id=sa;Password=Password!;Encrypt=False;TrustServerCertificate=True
+      - ConnectionStrings__OrderDb=Server=orderdb;Port=5432;Database=OrderDb;User Id=postgres;Password=sa;Include Error Detail=true
       - MessageBroker__Host=amqp://ecommerce-mq:5672
       - MessageBroker__UserName=guest
       - MessageBroker__Password=guest
