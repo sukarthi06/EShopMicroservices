@@ -15,12 +15,12 @@
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="9.0.0" />    
     <PackageReference Include="Carter" Version="10.0.0" />    
     <PackageReference Include="Marten" Version="8.17.0" />    
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />    
+    <PackageReference Include="Scrutor" Version="7.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <!--<ProjectReference Include="..\..\..\..\..\EShopMicroservices.Hosting\EShopMicroservices.Hosting.ServiceDefaults\EShopMicroservices.Hosting.ServiceDefaults.csproj" />-->
-    <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlocks\BuildingBlocks.csproj" />
+    <ProjectReference Include="..\..\..\BuildingBlocks\BuildingBlock\BuildingBlock.csproj" />
   </ItemGroup>
 
 </Project>

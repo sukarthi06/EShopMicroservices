@@ -1,35 +1,9 @@
 ﻿namespace Catalog.Api.Products.CreateProduct;
 
-public record CreateProductCommand(
-    string Name,
-    List<string> Category,
-    string Description,
-    string ImageFile,
-    decimal Price)
-    : ICommand<CreateProductResult>;
-public record CreateProductResult(Guid Id);
-
-public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
+public class CreateProductCommandHandler(IDocumentSession session) : ICommandHandler<CreateProductCommand, CreateProductResult>
 {
-    public CreateProductCommandValidator()
+    public async Task<CreateProductResult> HandleAsync(CreateProductCommand command, CancellationToken cancellationToken = default)
     {
-        RuleFor(x => x.Name).NotEmpty().WithMessage("Product name is required.").MaximumLength(200);
-        RuleFor(x => x.Category).NotEmpty().WithMessage("At least one category is required.");
-        RuleFor(x => x.ImageFile).NotEmpty().WithMessage("Image File is required.");
-        RuleFor(x => x.Price).GreaterThan(0).WithMessage("Price must be greater than zero.");
-    }
-}
-
-internal class CreateProductCommandHandler(IDocumentSession session) 
-    : ICommandHandler<CreateProductCommand, CreateProductResult>
-{
-    public async Task<CreateProductResult> Handle(CreateProductCommand command, CancellationToken cancellationToken)
-    {
-        // Create product entity from command object
-        // Save product entity to database
-        //return create product result
-        //
-
         var product = new Product
         {
             Id = Guid.NewGuid(),
@@ -44,5 +18,5 @@ internal class CreateProductCommandHandler(IDocumentSession session)
         await session.SaveChangesAsync(cancellationToken);
 
         return new CreateProductResult(product.Id);
-    }    
+    }
 }
