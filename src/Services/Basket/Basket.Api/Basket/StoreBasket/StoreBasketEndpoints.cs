@@ -1,18 +1,18 @@
-﻿
-namespace Basket.Api.Basket.StoreBasket;
+﻿namespace Basket.Api.Basket.StoreBasket;
 
-public record StoreBasketRequest(ShoppingCart Cart);
-public record StoreBasketResponse(string UserName);
+public sealed record StoreBasketRequest(ShoppingCart Cart);
+public sealed record StoreBasketResponse(string UserName);
 
 public class StoreBasketEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/basket", async (StoreBasketRequest request, ISender sender) =>
+        app.MapPost("/basket", async (StoreBasketRequest request, ISender sender, CancellationToken cancellationToken) =>
         {
             var command = request.Adapt<StoreBasketCommand>();
 
-            var result = await sender.Send(command);
+            // Explicitly cast to ICommand<StoreBasketResult> to resolve ambiguity
+            var result = await sender.Send(command, cancellationToken);
 
             var response = result.Adapt<StoreBasketResponse>();
 

@@ -1,9 +1,12 @@
-
-using Discount.Grpc;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Basket.Api.Basket.StoreBasket;
 using BuildingBlocks.Messaging.MassTransit;
-using System.Reflection;
+using Discount.Grpc;
+using eShop.BuildingBlocks.Exceptions.Handler;
+//using eShop.BuildingBlocks.CQRS;
+using HealthChecks.UI.Client;
+using Mediator;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,11 +16,39 @@ var builder = WebApplication.CreateBuilder(args);
 // Application services
 var assembly = typeof(Program).Assembly;
 builder.Services.AddCarter();
-builder.Services.AddMediatR(cfg => {
-    cfg.RegisterServicesFromAssembly(assembly);    
-    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>)); // Adding ValidationBehavior to MediatR pipeline
-    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>)); // Adding LoggingBehavior to MediatR pipeline
+//builder.Services.AddMediator(cfg => {
+//    cfg.RegisterServicesFromAssembly(assembly);    
+//    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>)); // Adding ValidationBehavior to MediatR pipeline
+//    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>)); // Adding LoggingBehavior to MediatR pipeline
+//});
+
+//var assemblies = new[]
+//{
+//    typeof(StoreBasketCommand).Assembly,          // Command definitions
+//    typeof(StoreBasketCommandHandler).Assembly,   // Handlers
+//    typeof(GetBasketQueryHandler).Assembly
+//    //typeof(ValidationBehavior<,>).Assembly       // Pipeline behaviors
+//};
+//builder.Services.AddCQRS(
+//    assemblies
+//);
+//builder.Services.AddMediator();
+
+//builder.Services.AddMediator();
+//builder.Services.AddCQRS(assembly);
+//builder.Services.AddMediator();
+
+builder.Services.AddMediator(options =>
+{
+    options.ServiceLifetime = ServiceLifetime.Scoped;
+    options.PipelineBehaviors =
+    [
+        typeof(eShop.BuildingBlocks.Behaviors.ValidationBehavior<,>),
+        typeof(eShop.BuildingBlocks.Behaviors.LoggingBehavior<,>)
+    ];
 });
+builder.Services.AddValidatorsFromAssemblyContaining<StoreBasketCommandValidator>();
+
 
 // Data services
 builder.Services.AddMarten(options =>
@@ -76,6 +107,7 @@ app.UseExceptionHandler(options =>
 {
     
 });
+//var mediator = app.Services.GetRequiredService<IMediator>();
 
 app.UseHealthChecks("/health", 
     new HealthCheckOptions

@@ -1,4 +1,6 @@
-﻿namespace Basket.Api.Exceptions;
+﻿using eShop.BuildingBlocks.Exceptions;
+
+namespace Basket.Api.Exceptions;
 
 public class BasketNotFoundException : NotFoundException
 {

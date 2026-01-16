@@ -5,7 +5,7 @@ namespace Basket.Api.Basket.CheckoutBasket;
 
 public record CheckoutBasketResult(bool IsSuccess);
 public record CheckoutBasketCommand(BasketCheckoutDto BasketCheckoutDto)
-    : ICommand<CheckoutBasketResult>;
+    : IRequest<CheckoutBasketResult>;//eShop.BuildingBlocks.CQRS.ICommand<CheckoutBasketResult>;
 
 public class CheckoutBasketCommandValidator
     : AbstractValidator<CheckoutBasketCommand>
@@ -17,10 +17,10 @@ public class CheckoutBasketCommandValidator
     }
 }
 
-public class CheckoutBasketCommandHandler(IBasketRepository repository, IPublishEndpoint publishEndpoint)
-    : ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
+public sealed class CheckoutBasketCommandHandler(IBasketRepository repository, IPublishEndpoint publishEndpoint)
+    : IRequestHandler<CheckoutBasketCommand, CheckoutBasketResult>//eShop.BuildingBlocks.CQRS.ICommandHandler<CheckoutBasketCommand, CheckoutBasketResult>
 {
-    public async Task<CheckoutBasketResult> Handle(CheckoutBasketCommand command, CancellationToken cancellationToken)
+    public async ValueTask<CheckoutBasketResult> Handle(CheckoutBasketCommand command, CancellationToken cancellationToken)
     {
         // get existing basket with total price
         // Set totalprice on basketcheckout event message
@@ -39,7 +39,7 @@ public class CheckoutBasketCommandHandler(IBasketRepository repository, IPublish
         await publishEndpoint.Publish(eventMessage, cancellationToken);
 
         await repository.DeleteBasket(command.BasketCheckoutDto.UserName, cancellationToken);
-        
+
         return new CheckoutBasketResult(true);
     }
 }

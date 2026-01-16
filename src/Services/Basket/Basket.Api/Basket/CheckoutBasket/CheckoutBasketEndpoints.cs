@@ -6,11 +6,11 @@ public class CheckoutBasketEndpoints : ICarterModule
 {
     public void AddRoutes(IEndpointRouteBuilder app)
     {
-        app.MapPost("/basket/checkout", async (CheckoutBasketRequest request, ISender sender) =>
+        app.MapPost("/basket/checkout", async (CheckoutBasketRequest request, ISender sender, CancellationToken cancellationToken) =>
         {
             var command = request.Adapt<CheckoutBasketCommand>();
 
-            var result = await sender.Send(command);
+            var result = await sender.Send(command, cancellationToken);
 
             var response = result.Adapt<CheckoutBasketResponse>();
 
