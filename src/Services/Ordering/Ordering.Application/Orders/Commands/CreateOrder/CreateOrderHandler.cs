@@ -1,9 +1,10 @@
 ﻿namespace Ordering.Application.Orders.Commands.CreateOrder;
 
-public class CreateOrderHandler(IApplicationDbContext dbContext) 
-    : ICommandHandler<CreateOrderCommand, CreateOrderResult>
+public sealed class CreateOrderHandler(IApplicationDbContext dbContext) 
+    : IRequestHandler<CreateOrderCommand, CreateOrderResult>
 {
-    public async Task<CreateOrderResult> Handle(CreateOrderCommand command, CancellationToken cancellationToken)
+    public async ValueTask<CreateOrderResult> Handle(CreateOrderCommand command,
+        CancellationToken cancellationToken)
     {
         //create Order entity from command object
         //save to database

@@ -14,6 +14,17 @@ builder.Services
     .AddInfrastructureServices(builder.Configuration)
     .AddApiServices(builder.Configuration);
 
+builder.Services.AddMediator(options => 
+{
+    options.ServiceLifetime = ServiceLifetime.Scoped;
+    options.PipelineBehaviors =
+    [
+        typeof(eShop.BuildingBlocks.Behaviors.ValidationBehavior<,>),
+        typeof(eShop.BuildingBlocks.Behaviors.LoggingBehavior<,>),
+        typeof(Ordering.Infrastructure.Data.Behaviors.DomainEventDispatchBehavior<,>)
+    ];
+});
+
 var app = builder.Build();
 
 //app.MapDefaultEndpoints();

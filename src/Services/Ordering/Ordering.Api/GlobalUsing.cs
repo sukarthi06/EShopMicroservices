@@ -1,4 +1,4 @@
 ﻿global using Carter;
 global using Mapster;
-global using MediatR;
+global using Mediator;
 global using Ordering.Application.Dtos;

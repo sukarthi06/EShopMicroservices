@@ -13,14 +13,14 @@ namespace Ordering.Infrastructure
 
             // Add services to the container.
             services.AddSingleton<AuditableEntityInterceptor>();
-            services.AddSingleton<DispatchDomainEventsInterceptor>();
+            //services.AddSingleton<DispatchDomainEventsInterceptor>();
 
             // Infrastructure Services
             services.AddDbContext<ApplicationDbContext>((sp, options) =>
             {
                 options.AddInterceptors(
-                sp.GetRequiredService<AuditableEntityInterceptor>(),
-                sp.GetRequiredService<DispatchDomainEventsInterceptor>()
+                sp.GetRequiredService<AuditableEntityInterceptor>()//,
+                //sp.GetRequiredService<DispatchDomainEventsInterceptor>()
                 );
 
                 options.UseNpgsql(connectionString,npgsqlOptionsAction =>

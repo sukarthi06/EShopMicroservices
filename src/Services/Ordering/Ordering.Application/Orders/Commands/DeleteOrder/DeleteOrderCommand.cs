@@ -1,9 +1,9 @@
 ﻿namespace Ordering.Application.Orders.Commands.DeleteOrder
 {
-    public record DeleteOrderResult(bool IsSuccess);
+    public sealed record DeleteOrderResult(bool IsSuccess);
 
-    public record DeleteOrderCommand(Guid OrderId)
-    : ICommand<DeleteOrderResult>;
+    public sealed record DeleteOrderCommand(Guid OrderId)
+    : IRequest<DeleteOrderResult>;
 
     public class DeleteOrderCommandValidator : AbstractValidator<DeleteOrderCommand>
     {

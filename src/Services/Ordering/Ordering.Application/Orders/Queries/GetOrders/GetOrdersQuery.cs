@@ -1,7 +1,7 @@
-﻿using BuildingBlocks.Pagination;
+﻿using eShop.BuildingBlocks.Pagination;
 
 namespace Ordering.Application.Orders.Queries.GetOrders;
 
-public record GetOrdersResult(PaginatedResult<OrderDto> Orders);
-public record GetOrdersQuery(PaginationRequest PaginationRequest)
-    : IQuery<GetOrdersResult>;
+public sealed record GetOrdersResult(PaginatedResult<OrderDto> Orders);
+public sealed record GetOrdersQuery(PaginationRequest PaginationRequest)
+    : IRequest<GetOrdersResult>;

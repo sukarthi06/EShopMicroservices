@@ -1,10 +1,9 @@
-﻿
-namespace Ordering.Application.Orders.Commands.DeleteOrder;
+﻿namespace Ordering.Application.Orders.Commands.DeleteOrder;
 
-public class DeleteOrderHandler(IApplicationDbContext dbContext)
-    : ICommandHandler<DeleteOrderCommand, DeleteOrderResult>
+public sealed class DeleteOrderHandler(IApplicationDbContext dbContext)
+    : IRequestHandler<DeleteOrderCommand, DeleteOrderResult>
 {
-    public async Task<DeleteOrderResult> Handle(DeleteOrderCommand command, CancellationToken cancellationToken)
+    public async ValueTask<DeleteOrderResult> Handle(DeleteOrderCommand command, CancellationToken cancellationToken)
     {
         var orderId = OrderId.Of(command.OrderId);
         var order = await dbContext.Orders

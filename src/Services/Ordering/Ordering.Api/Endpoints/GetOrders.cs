@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Pagination;
+﻿using eShop.BuildingBlocks.Pagination;
 using Ordering.Application.Orders.Queries.GetOrders;
 
 namespace Ordering.Api.Endpoints;

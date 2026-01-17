@@ -1,8 +1,8 @@
 ﻿namespace Ordering.Application.Orders.Commands.UpdateOrder;
 
-public record UpdateOrderResult(bool IsSuccess);
-public record UpdateOrderCommand(OrderDto Order)
-    : ICommand<UpdateOrderResult>;
+public sealed record UpdateOrderResult(bool IsSuccess);
+public sealed record UpdateOrderCommand(OrderDto Order)
+    : IRequest<UpdateOrderResult>;
 
 public class UpdateOrderCommandValidator : AbstractValidator<UpdateOrderCommand>
 {

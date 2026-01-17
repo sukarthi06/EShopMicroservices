@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Exceptions;
+﻿using eShop.BuildingBlocks.Exceptions;
 
 namespace Ordering.Application.Exceptions;
 

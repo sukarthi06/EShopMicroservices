@@ -1,6 +1,5 @@
-﻿using MediatR;
+﻿using Mediator;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Threading.Tasks;
 
 namespace Ordering.Infrastructure.Data.Interceptors
 {

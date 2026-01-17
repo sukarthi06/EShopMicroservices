@@ -1,4 +1,4 @@
-﻿using BuildingBlocks.Exceptions.Handler;
+﻿using eShop.BuildingBlocks.Exceptions.Handler;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 

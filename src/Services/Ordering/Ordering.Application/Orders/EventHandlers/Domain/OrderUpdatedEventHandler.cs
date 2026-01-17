@@ -1,11 +1,12 @@
 ﻿
 namespace Ordering.Application.Orders.EventHandlers;
 
-public class OrderUpdatedEventHandler(ILogger<OrderUpdatedEventHandler> logger) : INotificationHandler<OrderUpdatedEvent>
+public sealed class OrderUpdatedEventHandler(ILogger<OrderUpdatedEventHandler> logger) 
+    : INotificationHandler<OrderUpdatedEvent>
 {
-    public Task Handle(OrderUpdatedEvent notification, CancellationToken cancellationToken)
+    public ValueTask Handle(OrderUpdatedEvent domainEvent, CancellationToken cancellationToken)
     {
-        logger.LogInformation("Domain Event handled: {DomainEvent}", notification.GetType().Name);
-        return Task.CompletedTask;
+        logger.LogInformation("Domain Event handled: {DomainEvent}", domainEvent.GetType().Name);
+        return ValueTask.CompletedTask;
     }
 }

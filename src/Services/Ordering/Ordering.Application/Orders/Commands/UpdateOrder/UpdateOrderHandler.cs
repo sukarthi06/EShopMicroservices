@@ -1,9 +1,11 @@
 ﻿
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+
 namespace Ordering.Application.Orders.Commands.UpdateOrder;
-public class UpdateOrderHandler(IApplicationDbContext dbContext)
-    : ICommandHandler<UpdateOrderCommand, UpdateOrderResult>
+public sealed class UpdateOrderHandler(IApplicationDbContext dbContext)
+    : IRequestHandler<UpdateOrderCommand, UpdateOrderResult>
 {
-    public async Task<UpdateOrderResult> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
+    public async ValueTask<UpdateOrderResult> Handle(UpdateOrderCommand command, CancellationToken cancellationToken)
     {
         var orderId = OrderId.Of(command.Order.Id);
         var order = await dbContext.Orders
@@ -21,6 +23,7 @@ public class UpdateOrderHandler(IApplicationDbContext dbContext)
 
         return new UpdateOrderResult(true);
     }
+
     public void UpdateOrderWithNewValues(Order order, OrderDto orderDto)
     {
         var updatedShippingAddress = Address.Of(orderDto.ShippingAddress.FirstName, orderDto.ShippingAddress.LastName, orderDto.ShippingAddress.EmailAddress, orderDto.ShippingAddress.AddressLine, orderDto.ShippingAddress.Country, orderDto.ShippingAddress.State, orderDto.ShippingAddress.ZipCode);

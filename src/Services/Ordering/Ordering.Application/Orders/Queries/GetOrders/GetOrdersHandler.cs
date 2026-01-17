@@ -1,12 +1,11 @@
-﻿
-using BuildingBlocks.Pagination;
+﻿using eShop.BuildingBlocks.Pagination;
 
 namespace Ordering.Application.Orders.Queries.GetOrders;
 
-public class GetOrdersHandler(IApplicationDbContext dbContext)
-    : IQueryHandler<GetOrdersQuery, GetOrdersResult>
+public sealed class GetOrdersHandler(IApplicationDbContext dbContext)
+    : IRequestHandler<GetOrdersQuery, GetOrdersResult>
 {
-    public async Task<GetOrdersResult> Handle(GetOrdersQuery query, CancellationToken cancellationToken)
+    public async ValueTask<GetOrdersResult> Handle(GetOrdersQuery query, CancellationToken cancellationToken)
     {
         var pageIndex = query.PaginationRequest.PageIndex;
         var pageSize = query.PaginationRequest.PageSize;
@@ -26,5 +25,5 @@ public class GetOrdersHandler(IApplicationDbContext dbContext)
                 pageSize,
                 totalCount,
                 orders.ToOrderDtoList()));
-    }
+    }    
 }
