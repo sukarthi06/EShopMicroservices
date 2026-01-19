@@ -1,5 +1,6 @@
 name: CD
 
+# Trigger manually or on push to main
 on:
   workflow_dispatch:
   push:
@@ -7,7 +8,7 @@ on:
       - main
 
 permissions:
-  id-token: write  # For OIDC login
+  id-token: write  # Required for OIDC login
   contents: read
 
 jobs:
@@ -19,7 +20,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Azure OIDC login
+      # 2️⃣ Login to Azure using OIDC
       - name: Azure Login via OIDC
         uses: azure/login@v2
         with:
@@ -43,58 +44,68 @@ jobs:
       - name: Install Angular CLI
         run: npm install -g @angular/cli@21
 
-      # 6️⃣ Define services (Container App Name | Image Name | Dockerfile Path | Build Context)
-      - name: Set services
-        id: services
-        run: |
-          echo "SERVICES<<EOF" >> $GITHUB_ENV
-          echo "catalog-api|catalog.api|./src/Services/Catalog/Catalog.Api/Dockerfile|./src/Services/Catalog/Catalog.Api" >> $GITHUB_ENV
-          echo "basket-api|basket.api|./src/Services/Basket/Basket.Api/Dockerfile|./src/Services/Basket/Basket.Api" >> $GITHUB_ENV
-          echo "discount-grpc|discount.grpc|./src/Services/Discount/Discount.Grpc/Dockerfile|./src/Services/Discount/Discount.Grpc" >> $GITHUB_ENV
-          echo "ordering-api|ordering.api|./src/Services/Ordering/Ordering.Api/Dockerfile|./src/Services/Ordering/Ordering.Api" >> $GITHUB_ENV
-          echo "yarp-api-gateway|yarpapigateway|./ApiGateways/YarpApiGateway/Dockerfile|./ApiGateways/YarpApiGateway" >> $GITHUB_ENV
-          echo "eshop-ui|eshop.ui|./client/eshop-app/Dockerfile|./client/eshop-app" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      # 7️⃣ Build and push Docker images
+      # 6️⃣ Build & push Docker images
       - name: Build and push Docker images
         run: |
-          ACR_NAME=eshopkarthiacr
+          set -e
           IMAGE_TAG=latest
+          ACR_NAME=eshopkarthiacr
 
+          # Login to ACR
           az acr login --name $ACR_NAME
 
-          echo "$SERVICES" | while IFS="|" read CONTAINER IMAGE DOCKERFILE CONTEXT
-          do
-            echo "Building $IMAGE from $DOCKERFILE"
-            docker build "$CONTEXT" -f "$DOCKERFILE" -t "$ACR_NAME.azurecr.io/$IMAGE:$IMAGE_TAG"
-            docker push "$ACR_NAME.azurecr.io/$IMAGE:$IMAGE_TAG"
+          # List of services & corresponding Dockerfile paths
+          declare -A services=(
+            ["catalog.api"]="src/Services/Catalog/Catalog.Api/Dockerfile"
+            ["basket.api"]="src/Services/Basket/Basket.Api/Dockerfile"
+            ["discount.grpc"]="src/Services/Discount/Discount.Grpc/Dockerfile"
+            ["ordering.api"]="src/Services/Ordering/Ordering.Api/Dockerfile"
+            ["yarpapigateway"]="ApiGateways/YarpApiGateway/Dockerfile"
+            ["eshop.ui"]="client/eshop-app/Dockerfile"
+          )
+
+          # Loop through services
+          for svc in "${!services[@]}"; do
+            echo "Building $svc from ${services[$svc]}"
+            docker build -f ${services[$svc]} -t $ACR_NAME.azurecr.io/$svc:$IMAGE_TAG .
+            docker push $ACR_NAME.azurecr.io/$svc:$IMAGE_TAG
           done
 
-      # 8️⃣ Deploy to Azure Container Apps
+      # 7️⃣ Deploy to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
+          set -e
           RG_NAME=rg-eshop-prod
           ENV_NAME=eshop-env
           IMAGE_TAG=latest
+          ACR_NAME=eshopkarthiacr
 
-          # Ensure environment exists
+          # Create environment if missing
           az containerapp env create \
             --name $ENV_NAME \
             --resource-group $RG_NAME \
-            --location eastus
+            --location eastus || true
 
-          echo "$SERVICES" | while IFS="|" read CONTAINER IMAGE DOCKERFILE CONTEXT
-          do
-            echo "Deploying $CONTAINER from $IMAGE:$IMAGE_TAG"
+          # Deploy each container app
+          declare -A apps=(
+            ["catalog-api"]="catalog.api"
+            ["basket-api"]="basket.api"
+            ["discount-grpc"]="discount.grpc"
+            ["ordering-api"]="ordering.api"
+            ["yarp-api-gateway"]="yarpapigateway"
+            ["eshop-ui"]="eshop.ui"
+          )
+
+          for app in "${!apps[@]}"; do
+            echo "Deploying $app → ${apps[$app]}"
             az containerapp up \
-              --name $CONTAINER \
+              --name $app \
               --resource-group $RG_NAME \
-              --image eshopkarthiacr.azurecr.io/$IMAGE:$IMAGE_TAG \
+              --image $ACR_NAME.azurecr.io/${apps[$app]}:$IMAGE_TAG \
               --environment $ENV_NAME \
-              --cpu 0.5 --memory 1.0Gi \
-              --registry-server eshopkarthiacr.azurecr.io \
+              --cpu 0.5 \
+              --memory 1.0Gi \
+              --registry-server $ACR_NAME.azurecr.io \
               --ingress 'internal' \
-              --target-port 8080 \
-              || echo "$CONTAINER may already exist, updating image"
+              --target-port 8080 || true
           done
