@@ -1,12 +1,14 @@
 name: CD
 
+# Trigger manually or automatically on push to main
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
 
 permissions:
-  id-token: write  # For OIDC
+  id-token: write  # Required for OIDC login
   contents: read
 
 jobs:
@@ -59,15 +61,13 @@ jobs:
       # 8️⃣ Build & push Docker images to ACR
       - name: Build and push Docker images
         run: |
-          # Set variables
           ACR_NAME=eshopkarthiacr
-          RG_NAME=rg-eshop-prod
           IMAGE_TAG=latest
-          
+
           # Login to ACR
           az acr login --name $ACR_NAME
 
-          # Build & push APIs
+          # Build and push each container
           docker build ../src/Services/Catalog/Catalog.API -f ../src/Services/Catalog/Catalog.API/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
           docker push $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
 
@@ -83,7 +83,6 @@ jobs:
           docker build ../ApiGateways/YarpApiGateway -f ../ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG
           docker push $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG
 
-          # Build UI
           docker build ../client/eshop-app -f ../client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
           docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
 
@@ -91,7 +90,7 @@ jobs:
       - name: Deploy to Azure Container Apps
         run: |
           RG_NAME=rg-eshop-prod
-          ENV_NAME=eshop-env  # You can create one environment for all apps
+          ENV_NAME=eshop-env
           ACR_NAME=eshopkarthiacr
           IMAGE_TAG=latest
 
@@ -101,7 +100,7 @@ jobs:
             --resource-group $RG_NAME \
             --location eastus
 
-          # Deploy each container app
+          # Deploy each app
           az containerapp up \
             --name catalog-api \
             --resource-group $RG_NAME \
