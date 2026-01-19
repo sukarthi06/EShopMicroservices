@@ -1,6 +1,6 @@
 name: CD
 
-# Trigger manually or automatically on push to main
+# Trigger manually or on push to main
 on:
   workflow_dispatch:
   push:
@@ -44,20 +44,29 @@ jobs:
       - name: Install Angular CLI
         run: npm install -g @angular/cli@21
 
-      # 6️⃣ Build .NET APIs
-      - name: Build .NET APIs
-        run: |
-          dotnet restore
-          dotnet build --configuration Release
+      # 6️⃣ Restore .NET dependencies
+      - name: Restore .NET dependencies
+        working-directory: ./src
+        run: dotnet restore eshop-microservices.slnx
 
-      # 7️⃣ Build Angular UI
+      # 7️⃣ Build .NET projects
+      - name: Build .NET projects
+        working-directory: ./src
+        run: dotnet build eshop-microservices.slnx --configuration Release
+
+      # 8️⃣ Run .NET tests
+      - name: Run .NET tests
+        working-directory: ./src
+        run: dotnet test eshop-microservices.slnx --configuration Release --logger "trx;LogFileName=test_results.trx"
+
+      # 9️⃣ Build Angular UI
       - name: Build Angular App
         working-directory: client/eshop-app
         run: |
           npm ci
           ng build --configuration production
 
-      # 8️⃣ Build & push Docker images to ACR
+      # 🔟 Build & push Docker images to ACR
       - name: Build and push Docker images
         run: |
           ACR_NAME=eshopkarthiacr
@@ -85,7 +94,7 @@ jobs:
           docker build ../client/eshop-app -f ../client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
           docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
 
-      # 9️⃣ Deploy to Azure Container Apps
+      # 1️⃣1️⃣ Deploy to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
           RG_NAME=rg-eshop-prod
