@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [ "main" ]
+  push:
+    branches-ignore: [ "main" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2️⃣ Setup .NET 10
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # 3️⃣ Restore dependencies
+      - name: Restore .NET dependencies
+        run: dotnet restore
+
+      # 4️⃣ Build .NET projects
+      - name: Build .NET projects
+        run: dotnet build --no-restore --configuration Release
+
+      # 5️⃣ Run unit tests
+      - name: Run .NET tests
+        run: dotnet test --no-build --configuration Release --logger "trx;LogFileName=test_results.trx"
+
+      # 6️⃣ Setup Node.js 24 for Angular
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # 7️⃣ Install Angular CLI globally
+      - name: Install Angular CLI
+        run: npm install -g @angular/cli@21
+
+      # 8️⃣ Install Angular dependencies
+      - name: Install Angular dependencies
+        working-directory: client/eshop-app
+        run: npm ci
+
+      # 9️⃣ Build Angular UI
+      - name: Build Angular app
+        working-directory: client/eshop-app
+        run: ng build --configuration production
+
+      # 🔟 Upload test results
+      - name: Upload test results
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: '**/TestResults/*.trx'
