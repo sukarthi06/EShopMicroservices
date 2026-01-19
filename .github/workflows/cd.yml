@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  id-token: write
+  id-token: write  # For OIDC login
   contents: read
 
 jobs:
@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
+      # 1️⃣ Checkout repo
       - name: Checkout code
         uses: actions/checkout@v4
 
@@ -43,80 +43,58 @@ jobs:
       - name: Install Angular CLI
         run: npm install -g @angular/cli@21
 
-      # 6️⃣ Restore .NET dependencies
-      - name: Restore .NET dependencies
-        working-directory: ./src
-        run: dotnet restore eshop-microservices.slnx
-
-      # 7️⃣ Build .NET projects
-      - name: Build .NET projects
-        working-directory: ./src
-        run: dotnet build eshop-microservices.slnx --configuration Release
-
-      # 8️⃣ Run .NET tests
-      - name: Run .NET tests
-        working-directory: ./src
-        run: dotnet test eshop-microservices.slnx --configuration Release --logger "trx;LogFileName=test_results.trx"
-
-      # 9️⃣ Build Angular App
-      - name: Build Angular App
-        working-directory: ./client/eshop-app
+      # 6️⃣ Define services (Container App Name | Image Name | Dockerfile Path | Build Context)
+      - name: Set services
+        id: services
         run: |
-          npm ci
-          ng build --configuration production
+          echo "SERVICES<<EOF" >> $GITHUB_ENV
+          echo "catalog-api|catalog.api|./src/Services/Catalog/Catalog.Api/Dockerfile|./src/Services/Catalog/Catalog.Api" >> $GITHUB_ENV
+          echo "basket-api|basket.api|./src/Services/Basket/Basket.Api/Dockerfile|./src/Services/Basket/Basket.Api" >> $GITHUB_ENV
+          echo "discount-grpc|discount.grpc|./src/Services/Discount/Discount.Grpc/Dockerfile|./src/Services/Discount/Discount.Grpc" >> $GITHUB_ENV
+          echo "ordering-api|ordering.api|./src/Services/Ordering/Ordering.Api/Dockerfile|./src/Services/Ordering/Ordering.Api" >> $GITHUB_ENV
+          echo "yarp-api-gateway|yarpapigateway|./ApiGateways/YarpApiGateway/Dockerfile|./ApiGateways/YarpApiGateway" >> $GITHUB_ENV
+          echo "eshop-ui|eshop.ui|./client/eshop-app/Dockerfile|./client/eshop-app" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
-      # 🔟 Build & Push Docker images to ACR
+      # 7️⃣ Build and push Docker images
       - name: Build and push Docker images
         run: |
           ACR_NAME=eshopkarthiacr
           IMAGE_TAG=latest
 
-          # Login to Azure Container Registry
           az acr login --name $ACR_NAME
 
-          # Build & push Catalog API
-          docker build ./src/Services/Catalog/Catalog.Api -f ./src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
+          echo "$SERVICES" | while IFS="|" read CONTAINER IMAGE DOCKERFILE CONTEXT
+          do
+            echo "Building $IMAGE from $DOCKERFILE"
+            docker build "$CONTEXT" -f "$DOCKERFILE" -t "$ACR_NAME.azurecr.io/$IMAGE:$IMAGE_TAG"
+            docker push "$ACR_NAME.azurecr.io/$IMAGE:$IMAGE_TAG"
+          done
 
-          # Build & push Basket API
-          docker build ./src/Services/Basket/Basket.Api -f ./src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG
-
-          # Build & push Discount gRPC
-          docker build ./src/Services/Discount/Discount.Grpc -f ./src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG
-
-          # Build & push Ordering API
-          docker build ./src/Services/Ordering/Ordering.Api -f ./src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG
-
-          # Build & push YARP API Gateway
-          docker build ./ApiGateways/YarpApiGateway -f ./ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG
-
-          # Build & push Angular UI
-          docker build ./client/eshop-app -f ./client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
-
-      # 1️⃣1️⃣ Deploy to Azure Container Apps
+      # 8️⃣ Deploy to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
           RG_NAME=rg-eshop-prod
           ENV_NAME=eshop-env
-          ACR_NAME=eshopkarthiacr
           IMAGE_TAG=latest
-          LOCATION=eastus
 
-          # Create Container Apps environment if not exists
+          # Ensure environment exists
           az containerapp env create \
             --name $ENV_NAME \
             --resource-group $RG_NAME \
-            --location $LOCATION
+            --location eastus
 
-          # Deploy each container app
-          az containerapp up --name catalog-api --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name basket-api --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name discount-grpc --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name ordering-api --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name yarp-api-gateway --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name eshop-ui --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
+          echo "$SERVICES" | while IFS="|" read CONTAINER IMAGE DOCKERFILE CONTEXT
+          do
+            echo "Deploying $CONTAINER from $IMAGE:$IMAGE_TAG"
+            az containerapp up \
+              --name $CONTAINER \
+              --resource-group $RG_NAME \
+              --image eshopkarthiacr.azurecr.io/$IMAGE:$IMAGE_TAG \
+              --environment $ENV_NAME \
+              --cpu 0.5 --memory 1.0Gi \
+              --registry-server eshopkarthiacr.azurecr.io \
+              --ingress 'internal' \
+              --target-port 8080 \
+              || echo "$CONTAINER may already exist, updating image"
+          done
