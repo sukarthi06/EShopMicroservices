@@ -7,7 +7,7 @@ on:
       - main
 
 permissions:
-  id-token: write  # Required for OIDC login
+  id-token: write
   contents: read
 
 jobs:
@@ -75,7 +75,7 @@ jobs:
           az acr login --name $ACR_NAME
 
           # Build & push Catalog API
-          docker build ./src/Services/Catalog/Catalog.API -f ./src/Services/Catalog/Catalog.API/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
+          docker build ./src/Services/Catalog/Catalog.Api -f ./src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
           docker push $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
 
           # Build & push Basket API
