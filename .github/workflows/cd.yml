@@ -87,9 +87,9 @@ jobs:
                 ;;
             esac
 
-            echo "Building $IMAGE_NAME from $SRC_PATH"
-            docker build "$SRC_PATH" -f "$DOCKERFILE" -t $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG
-            docker push $ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG
+            echo "Building $IMAGE_NAME using Dockerfile $DOCKERFILE"
+            docker build . -f "$DOCKERFILE" -t "$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
+            docker push "$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
           done
 
           # -------- Angular UI --------
