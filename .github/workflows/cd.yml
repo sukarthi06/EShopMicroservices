@@ -1,6 +1,5 @@
 name: CD
 
-# Trigger manually or automatically on push to main
 on:
   workflow_dispatch:
   push:
@@ -8,12 +7,16 @@ on:
       - main
 
 permissions:
-  id-token: write  # Required for OIDC login
+  id-token: write
   contents: read
 
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+    env:
+      ACR_NAME: eshopkarthiacr
+      IMAGE_TAG: latest
+
     steps:
       # 1️⃣ Checkout repo
       - name: Checkout code
@@ -27,84 +30,46 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 3️⃣ Setup .NET 10
+      # 3️⃣ Setup .NET
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: "10.0.x"
 
-      # 4️⃣ Setup Node.js 24
+      # 4️⃣ Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "24"
 
-      # 5️⃣ Install Angular CLI 21
+      # 5️⃣ Install Angular CLI
       - name: Install Angular CLI
         run: npm install -g @angular/cli@21
 
-      # 6️⃣ Build & push Docker images
-      - name: Build and push Docker images
+      # 6️⃣ Login to ACR
+      - name: Login to Azure Container Registry
+        run: az acr login --name $ACR_NAME
+
+      # 7️⃣ Build & push all services using Docker Compose
+      - name: Build & push all services
         run: |
           set -e
-          ACR_NAME=eshopkarthiacr
-          IMAGE_TAG=latest
+          COMPOSE_FILE="composer/docker-compose.yml"
 
-          # Login to ACR
-          az acr login --name $ACR_NAME
-
-          # -------- APIs --------
-          for service in catalog basket discount ordering yarp; do
-            SRC_PATH=""
-            DOCKERFILE=""
-            IMAGE_NAME=""
-
-            case $service in
-              catalog)
-                SRC_PATH="src/Services/Catalog/Catalog.Api"
-                DOCKERFILE="$SRC_PATH/Dockerfile"
-                IMAGE_NAME="catalog.api"
-                ;;
-              basket)
-                SRC_PATH="src/Services/Basket/Basket.Api"
-                DOCKERFILE="$SRC_PATH/Dockerfile"
-                IMAGE_NAME="basket.api"
-                ;;
-              discount)
-                SRC_PATH="src/Services/Discount/Discount.Grpc"
-                DOCKERFILE="$SRC_PATH/Dockerfile"
-                IMAGE_NAME="discount.grpc"
-                ;;
-              ordering)
-                SRC_PATH="src/Services/Ordering/Ordering.Api"
-                DOCKERFILE="$SRC_PATH/Dockerfile"
-                IMAGE_NAME="ordering.api"
-                ;;
-              yarp)
-                SRC_PATH="src/ApiGateways/YarpApiGateway"
-                DOCKERFILE="$SRC_PATH/Dockerfile"
-                IMAGE_NAME="yarpapigateway"
-                ;;
-            esac
-
-            echo "Building $IMAGE_NAME using Dockerfile $DOCKERFILE"
-            docker build . -f "$DOCKERFILE" -t "$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
-            docker push "$ACR_NAME.azurecr.io/$IMAGE_NAME:$IMAGE_TAG"
+          for svc in catalog.api basket.api discount.grpc ordering.api yarpapigateway eshop.ui; do
+            echo "Building $svc"
+            docker-compose -f $COMPOSE_FILE build $svc
+            echo "Pushing $svc"
+            docker tag $svc $ACR_NAME.azurecr.io/$svc:$IMAGE_TAG
+            docker push $ACR_NAME.azurecr.io/$svc:$IMAGE_TAG
           done
 
-          # -------- Angular UI --------
-          UI_PATH="client/eshop-app"
-          docker build -f $UI_PATH/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG $UI_PATH
-          docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
-
-      # 7️⃣ Deploy to Azure Container Apps
+      # 8️⃣ Deploy to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
           set -e
           RG_NAME=rg-eshop-prod
           ENV_NAME=eshop-env
-          ACR_NAME=eshopkarthiacr
-          IMAGE_TAG=latest
 
           # Ensure environment exists
           az containerapp env create \
@@ -114,16 +79,7 @@ jobs:
 
           # Deploy APIs & UI
           for app in catalog-api basket-api discount-grpc ordering-api yarp-api-gateway eshop-ui; do
-            IMAGE=""
-            case $app in
-              catalog-api) IMAGE="$ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG" ;;
-              basket-api) IMAGE="$ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG" ;;
-              discount-grpc) IMAGE="$ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG" ;;
-              ordering-api) IMAGE="$ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG" ;;
-              yarp-api-gateway) IMAGE="$ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG" ;;
-              eshop-ui) IMAGE="$ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG" ;;
-            esac
-
+            IMAGE="$ACR_NAME.azurecr.io/$app:$IMAGE_TAG"
             echo "Deploying $app → $IMAGE"
             az containerapp up \
               --name $app \
