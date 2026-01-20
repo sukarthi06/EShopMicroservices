@@ -58,8 +58,9 @@ jobs:
 
           for svc in catalog.api basket.api discount.grpc ordering.api yarpapigateway eshop.ui; do
             echo "Building $svc"
-            docker-compose -f $COMPOSE_FILE build $svc
-            echo "Pushing $svc"
+            docker compose -f $COMPOSE_FILE build $svc
+      
+            echo "Tagging & pushing $svc"
             docker tag $svc $ACR_NAME.azurecr.io/$svc:$IMAGE_TAG
             docker push $ACR_NAME.azurecr.io/$svc:$IMAGE_TAG
           done
