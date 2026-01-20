@@ -15,123 +15,107 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Azure login via OIDC
-      - name: Azure Login
+      - name: Azure Login via OIDC
         uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # Login to ACR
-      - name: ACR Login
-        run: az acr login --name eshopkarthiacr
-
-      # -------------------------
-      # BUILD & PUSH IMAGES
-      # -------------------------
-
-      - name: Build & Push Catalog API
+      - name: Login to ACR
         run: |
-          docker build ./src/Services/Catalog/Catalog.Api \
-            -f ./src/Services/Catalog/Catalog.Api/Dockerfile \
-            -t eshopkarthiacr.azurecr.io/catalog.api:latest
-          docker push eshopkarthiacr.azurecr.io/catalog.api:latest
+          az acr login --name eshopkarthiacr
 
-      - name: Build & Push Basket API
+      - name: Build & Push Docker Images
         run: |
-          docker build ./src/Services/Basket/Basket.Api \
-            -f ./src/Services/Basket/Basket.Api/Dockerfile \
-            -t eshopkarthiacr.azurecr.io/basket.api:latest
-          docker push eshopkarthiacr.azurecr.io/basket.api:latest
+          set -e
+          ACR_NAME=eshopkarthiacr
+          TAG=latest
 
-      - name: Build & Push Discount Grpc
-        run: |
-          docker build ./src/Services/Discount/Discount.Grpc \
-            -f ./src/Services/Discount/Discount.Grpc/Dockerfile \
-            -t eshopkarthiacr.azurecr.io/discount.grpc:latest
-          docker push eshopkarthiacr.azurecr.io/discount.grpc:latest
+          echo "Building catalog.api"
+          docker build -f src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$TAG .
+          docker push $ACR_NAME.azurecr.io/catalog.api:$TAG
 
-      - name: Build & Push Ordering API
-        run: |
-          docker build ./src/Services/Ordering/Ordering.Api \
-            -f ./src/Services/Ordering/Ordering.Api/Dockerfile \
-            -t eshopkarthiacr.azurecr.io/ordering.api:latest
-          docker push eshopkarthiacr.azurecr.io/ordering.api:latest
+          echo "Building basket.api"
+          docker build -f src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$TAG .
+          docker push $ACR_NAME.azurecr.io/basket.api:$TAG
 
-      - name: Build & Push YARP Gateway
-        run: |
-          docker build ./ApiGateways/YarpApiGateway \
-            -f ./ApiGateways/YarpApiGateway/Dockerfile \
-            -t eshopkarthiacr.azurecr.io/yarpapigateway:latest
-          docker push eshopkarthiacr.azurecr.io/yarpapigateway:latest
+          echo "Building discount.grpc"
+          docker build -f src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$TAG .
+          docker push $ACR_NAME.azurecr.io/discount.grpc:$TAG
 
-      - name: Build & Push Angular UI
-        run: |
-          docker build ./client/eshop-app \
-            -f ./client/eshop-app/Dockerfile \
-            -t eshopkarthiacr.azurecr.io/eshop.ui:latest
-          docker push eshopkarthiacr.azurecr.io/eshop.ui:latest
+          echo "Building ordering.api"
+          docker build -f src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$TAG .
+          docker push $ACR_NAME.azurecr.io/ordering.api:$TAG
 
-      # -------------------------
-      # DEPLOY TO CONTAINER APPS
-      # -------------------------
+          echo "Building yarp.gateway"
+          docker build -f src/ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarp.gateway:$TAG .
+          docker push $ACR_NAME.azurecr.io/yarp.gateway:$TAG
+
+          echo "Building eshop.ui"
+          docker build -f client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG .
+          docker push $ACR_NAME.azurecr.io/eshop.ui:$TAG
 
       - name: Deploy to Azure Container Apps
         run: |
-          az containerapp env create \
-            --name eshop-env \
-            --resource-group rg-eshop-prod \
-            --location eastus || true
+          RG=rg-eshop-prod
+          ENV=eshop-env
+          ACR=eshopkarthiacr
+          TAG=latest
 
           az containerapp up \
             --name catalog-api \
-            --resource-group rg-eshop-prod \
-            --environment eshop-env \
-            --image eshopkarthiacr.azurecr.io/catalog.api:latest \
-            --registry-server eshopkarthiacr.azurecr.io \
-            --ingress internal || true
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/catalog.api:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress internal \
+            --target-port 8080
 
           az containerapp up \
             --name basket-api \
-            --resource-group rg-eshop-prod \
-            --environment eshop-env \
-            --image eshopkarthiacr.azurecr.io/basket.api:latest \
-            --registry-server eshopkarthiacr.azurecr.io \
-            --ingress internal || true
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/basket.api:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress internal \
+            --target-port 8080
 
           az containerapp up \
             --name discount-grpc \
-            --resource-group rg-eshop-prod \
-            --environment eshop-env \
-            --image eshopkarthiacr.azurecr.io/discount.grpc:latest \
-            --registry-server eshopkarthiacr.azurecr.io \
-            --ingress internal || true
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/discount.grpc:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress internal \
+            --target-port 8080
 
           az containerapp up \
             --name ordering-api \
-            --resource-group rg-eshop-prod \
-            --environment eshop-env \
-            --image eshopkarthiacr.azurecr.io/ordering.api:latest \
-            --registry-server eshopkarthiacr.azurecr.io \
-            --ingress internal || true
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/ordering.api:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress internal \
+            --target-port 8080
 
           az containerapp up \
-            --name yarp-api-gateway \
-            --resource-group rg-eshop-prod \
-            --environment eshop-env \
-            --image eshopkarthiacr.azurecr.io/yarpapigateway:latest \
-            --registry-server eshopkarthiacr.azurecr.io \
-            --ingress external || true
+            --name yarp-gateway \
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/yarp.gateway:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress external \
+            --target-port 8080
 
           az containerapp up \
             --name eshop-ui \
-            --resource-group rg-eshop-prod \
-            --environment eshop-env \
-            --image eshopkarthiacr.azurecr.io/eshop.ui:latest \
-            --registry-server eshopkarthiacr.azurecr.io \
-            --ingress external || true
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/eshop.ui:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress external \
+            --target-port 80
