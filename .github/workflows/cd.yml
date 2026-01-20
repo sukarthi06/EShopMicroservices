@@ -26,37 +26,43 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Login to ACR
-        run: |
-          az acr login --name eshopkarthiacr
+        uses: azure/docker-login@v1
+        with:
+          login-server: eshopkarthiacr.azurecr.io
 
-      - name: Build & Push Docker Images
+      - name: Build & Push .NET APIs
         run: |
           set -e
           ACR_NAME=eshopkarthiacr
           TAG=latest
 
-          echo "Building catalog.api"
-          docker build -f src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$TAG .
+          # --- Catalog API ---
+          docker build -f src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$TAG src
           docker push $ACR_NAME.azurecr.io/catalog.api:$TAG
 
-          echo "Building basket.api"
-          docker build -f src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$TAG .
+          # --- Basket API ---
+          docker build -f src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$TAG src
           docker push $ACR_NAME.azurecr.io/basket.api:$TAG
 
-          echo "Building discount.grpc"
-          docker build -f src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$TAG .
+          # --- Discount gRPC ---
+          docker build -f src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$TAG src
           docker push $ACR_NAME.azurecr.io/discount.grpc:$TAG
 
-          echo "Building ordering.api"
-          docker build -f src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$TAG .
+          # --- Ordering API ---
+          docker build -f src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$TAG src
           docker push $ACR_NAME.azurecr.io/ordering.api:$TAG
 
-          echo "Building yarp.gateway"
-          docker build -f src/ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarp.gateway:$TAG .
+          # --- YARP Gateway ---
+          docker build -f src/ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarp.gateway:$TAG src
           docker push $ACR_NAME.azurecr.io/yarp.gateway:$TAG
 
-          echo "Building eshop.ui"
-          docker build ./client/eshop-app -f ./client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG .
+      - name: Build & Push Angular UI
+        run: |
+          set -e
+          ACR_NAME=eshopkarthiacr
+          TAG=latest
+
+          docker build -f client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG client/eshop-app
           docker push $ACR_NAME.azurecr.io/eshop.ui:$TAG
 
       - name: Deploy to Azure Container Apps
@@ -66,6 +72,7 @@ jobs:
           ACR=eshopkarthiacr
           TAG=latest
 
+          # --- Catalog API ---
           az containerapp up \
             --name catalog-api \
             --resource-group $RG \
@@ -75,6 +82,7 @@ jobs:
             --ingress internal \
             --target-port 8080
 
+          # --- Basket API ---
           az containerapp up \
             --name basket-api \
             --resource-group $RG \
@@ -84,6 +92,7 @@ jobs:
             --ingress internal \
             --target-port 8080
 
+          # --- Discount gRPC ---
           az containerapp up \
             --name discount-grpc \
             --resource-group $RG \
@@ -93,6 +102,7 @@ jobs:
             --ingress internal \
             --target-port 8080
 
+          # --- Ordering API ---
           az containerapp up \
             --name ordering-api \
             --resource-group $RG \
@@ -102,6 +112,7 @@ jobs:
             --ingress internal \
             --target-port 8080
 
+          # --- YARP Gateway ---
           az containerapp up \
             --name yarp-gateway \
             --resource-group $RG \
@@ -111,6 +122,7 @@ jobs:
             --ingress external \
             --target-port 8080
 
+          # --- Angular UI ---
           az containerapp up \
             --name eshop-ui \
             --resource-group $RG \
