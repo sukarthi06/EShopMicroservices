@@ -56,7 +56,7 @@ jobs:
           docker push $ACR_NAME.azurecr.io/yarp.gateway:$TAG
 
           echo "Building eshop.ui"
-          docker build -f client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG .
+          docker build ./client/eshop-app -f ./client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG .
           docker push $ACR_NAME.azurecr.io/eshop.ui:$TAG
 
       - name: Deploy to Azure Container Apps
