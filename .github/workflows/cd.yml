@@ -26,43 +26,37 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       - name: Login to ACR
-        uses: azure/docker-login@v1
-        with:
-          login-server: eshopkarthiacr.azurecr.io
+        run: |
+          az acr login --name eshopkarthiacr
 
-      - name: Build & Push .NET APIs
+      - name: Build & Push Docker Images
         run: |
           set -e
           ACR_NAME=eshopkarthiacr
           TAG=latest
 
-          # --- Catalog API ---
-          docker build -f src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$TAG src
+          echo "Building catalog.api"
+          docker build -f src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$TAG .
           docker push $ACR_NAME.azurecr.io/catalog.api:$TAG
 
-          # --- Basket API ---
-          docker build -f src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$TAG src
+          echo "Building basket.api"
+          docker build -f src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$TAG .
           docker push $ACR_NAME.azurecr.io/basket.api:$TAG
 
-          # --- Discount gRPC ---
-          docker build -f src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$TAG src
+          echo "Building discount.grpc"
+          docker build -f src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$TAG .
           docker push $ACR_NAME.azurecr.io/discount.grpc:$TAG
 
-          # --- Ordering API ---
-          docker build -f src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$TAG src
+          echo "Building ordering.api"
+          docker build -f src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$TAG .
           docker push $ACR_NAME.azurecr.io/ordering.api:$TAG
 
-          # --- YARP Gateway ---
-          docker build -f src/ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarp.gateway:$TAG src
+          echo "Building yarp.gateway"
+          docker build -f src/ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarp.gateway:$TAG .
           docker push $ACR_NAME.azurecr.io/yarp.gateway:$TAG
 
-      - name: Build & Push Angular UI
-        run: |
-          set -e
-          ACR_NAME=eshopkarthiacr
-          TAG=latest
-
-          docker build -f client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG client/eshop-app
+          echo "Building eshop.ui"
+          docker build ./client/eshop-app -f ./client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG .
           docker push $ACR_NAME.azurecr.io/eshop.ui:$TAG
 
       - name: Deploy to Azure Container Apps
@@ -72,62 +66,28 @@ jobs:
           ACR=eshopkarthiacr
           TAG=latest
 
-          # --- Catalog API ---
-          az containerapp up \
-            --name catalog-api \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/catalog.api:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress internal \
-            --target-port 8080
+          # Internal APIs
+          for SERVICE in catalog-api basket-api discount-grpc ordering-api; do
+            az containerapp up \
+              --name $SERVICE \
+              --resource-group $RG \
+              --environment $ENV \
+              --image $ACR.azurecr.io/${SERVICE//-/.}:$TAG \
+              --registry-server $ACR.azurecr.io \
+              --ingress internal \
+              --target-port 8080
+          done
 
-          # --- Basket API ---
-          az containerapp up \
-            --name basket-api \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/basket.api:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress internal \
-            --target-port 8080
-
-          # --- Discount gRPC ---
-          az containerapp up \
-            --name discount-grpc \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/discount.grpc:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress internal \
-            --target-port 8080
-
-          # --- Ordering API ---
-          az containerapp up \
-            --name ordering-api \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/ordering.api:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress internal \
-            --target-port 8080
-
-          # --- YARP Gateway ---
-          az containerapp up \
-            --name yarp-gateway \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/yarp.gateway:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress external \
-            --target-port 8080
-
-          # --- Angular UI ---
-          az containerapp up \
-            --name eshop-ui \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/eshop.ui:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress external \
-            --target-port 80
+          # External services
+          for SERVICE in yarp-gateway eshop-ui; do
+            PORT=8080
+            [[ "$SERVICE" == "eshop-ui" ]] && PORT=80
+            az containerapp up \
+              --name $SERVICE \
+              --resource-group $RG \
+              --environment $ENV \
+              --image $ACR.azurecr.io/${SERVICE//-/.}:$TAG \
+              --registry-server $ACR.azurecr.io \
+              --ingress external \
+              --target-port $PORT
+          done
