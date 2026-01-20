@@ -15,11 +15,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣ Checkout repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 2️⃣ Azure OIDC login
       - name: Azure Login via OIDC
         uses: azure/login@v2
         with:
@@ -27,96 +25,97 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      # 3️⃣ Setup .NET 10
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: "10.0.x"
-
-      # 4️⃣ Setup Node.js 24
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
-
-      # 5️⃣ Install Angular CLI 21
-      - name: Install Angular CLI
-        run: npm install -g @angular/cli@21
-
-      # 6️⃣ Restore .NET dependencies
-      - name: Restore .NET dependencies
-        working-directory: ./src
-        run: dotnet restore eshop-microservices.slnx
-
-      # 7️⃣ Build .NET projects
-      - name: Build .NET projects
-        working-directory: ./src
-        run: dotnet build eshop-microservices.slnx --configuration Release
-
-      # 8️⃣ Run .NET tests
-      - name: Run .NET tests
-        working-directory: ./src
-        run: dotnet test eshop-microservices.slnx --configuration Release --logger "trx;LogFileName=test_results.trx"
-
-      # 9️⃣ Build Angular App
-      - name: Build Angular App
-        working-directory: ./client/eshop-app
+      - name: Login to ACR
         run: |
-          npm ci
-          ng build --configuration production
+          az acr login --name eshopkarthiacr
 
-      # 🔟 Build & Push Docker images to ACR
-      - name: Build and push Docker images
+      - name: Build & Push Docker Images
         run: |
+          set -e
           ACR_NAME=eshopkarthiacr
-          IMAGE_TAG=latest
+          TAG=latest
 
-          # Login to Azure Container Registry
-          az acr login --name $ACR_NAME
+          echo "Building catalog.api"
+          docker build -f src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$TAG .
+          docker push $ACR_NAME.azurecr.io/catalog.api:$TAG
 
-          # Build & push Catalog API
-          docker build ./src/Services/Catalog/Catalog.Api -f ./src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
+          echo "Building basket.api"
+          docker build -f src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$TAG .
+          docker push $ACR_NAME.azurecr.io/basket.api:$TAG
 
-          # Build & push Basket API
-          docker build ./src/Services/Basket/Basket.Api -f ./src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG
+          echo "Building discount.grpc"
+          docker build -f src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$TAG .
+          docker push $ACR_NAME.azurecr.io/discount.grpc:$TAG
 
-          # Build & push Discount gRPC
-          docker build ./src/Services/Discount/Discount.Grpc -f ./src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG
+          echo "Building ordering.api"
+          docker build -f src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$TAG .
+          docker push $ACR_NAME.azurecr.io/ordering.api:$TAG
 
-          # Build & push Ordering API
-          docker build ./src/Services/Ordering/Ordering.Api -f ./src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG
+          echo "Building yarp.gateway"
+          docker build -f src/ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarp.gateway:$TAG .
+          docker push $ACR_NAME.azurecr.io/yarp.gateway:$TAG
 
-          # Build & push YARP API Gateway
-          docker build ./ApiGateways/YarpApiGateway -f ./ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG
+          echo "Building eshop.ui"
+          docker build -f client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG .
+          docker push $ACR_NAME.azurecr.io/eshop.ui:$TAG
 
-          # Build & push Angular UI
-          docker build ./client/eshop-app -f ./client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
-
-      # 1️⃣1️⃣ Deploy to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
-          RG_NAME=rg-eshop-prod
-          ENV_NAME=eshop-env
-          ACR_NAME=eshopkarthiacr
-          IMAGE_TAG=latest
-          LOCATION=eastus
+          RG=rg-eshop-prod
+          ENV=eshop-env
+          ACR=eshopkarthiacr
+          TAG=latest
 
-          # Create Container Apps environment if not exists
-          az containerapp env create \
-            --name $ENV_NAME \
-            --resource-group $RG_NAME \
-            --location $LOCATION
+          az containerapp up \
+            --name catalog-api \
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/catalog.api:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress internal \
+            --target-port 8080
 
-          # Deploy each container app
-          az containerapp up --name catalog-api --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name basket-api --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name discount-grpc --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name ordering-api --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name yarp-api-gateway --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
-          az containerapp up --name eshop-ui --resource-group $RG_NAME --image $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG --environment $ENV_NAME --cpu 0.5 --memory 1.0Gi --registry-server $ACR_NAME.azurecr.io
+          az containerapp up \
+            --name basket-api \
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/basket.api:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress internal \
+            --target-port 8080
+
+          az containerapp up \
+            --name discount-grpc \
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/discount.grpc:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress internal \
+            --target-port 8080
+
+          az containerapp up \
+            --name ordering-api \
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/ordering.api:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress internal \
+            --target-port 8080
+
+          az containerapp up \
+            --name yarp-gateway \
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/yarp.gateway:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress external \
+            --target-port 8080
+
+          az containerapp up \
+            --name eshop-ui \
+            --resource-group $RG \
+            --environment $ENV \
+            --image $ACR.azurecr.io/eshop.ui:$TAG \
+            --registry-server $ACR.azurecr.io \
+            --ingress external \
+            --target-port 80
