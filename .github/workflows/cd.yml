@@ -100,7 +100,11 @@ jobs:
       # 9️⃣ Deploy to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
-          set -e
+          RG=rg-eshop-prod
+          ENV=eshop-env
+          ACR=eshopkarthiacr
+          TAG=latest
+          LOG_WORKSPACE_ID="/subscriptions/bc61920f-ff6d-4003-bf9f-60850a588787/resourceGroups/rg-eshop-prod/providers/Microsoft.OperationalInsights/workspaces/eshop-log-workspace"
 
           az containerapp up \
             --name catalog-api \
@@ -110,6 +114,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name basket-api \
@@ -119,6 +124,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name discount-grpc \
@@ -128,6 +134,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name ordering-api \
@@ -137,6 +144,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name yarp-api-gateway \
@@ -146,6 +154,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name eshop-ui \
@@ -155,3 +164,4 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
