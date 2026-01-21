@@ -114,9 +114,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
-            --cpu 0.5 \
-            --memory 1Gi
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name basket-api \
@@ -126,9 +124,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
-            --cpu 0.5 \
-            --memory 1Gi
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name discount-grpc \
@@ -138,9 +134,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
-            --cpu 0.5 \
-            --memory 1Gi
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name ordering-api \
@@ -150,9 +144,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
-            --cpu 0.5 \
-            --memory 1Gi
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name yarp-api-gateway \
@@ -162,9 +154,7 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
-            --cpu 0.5 \
-            --memory 1Gi
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name eshop-ui \
@@ -174,6 +164,4 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
-            --cpu 0.5 \
-            --memory 1Gi
+            --logs-workspace-id $LOG_WORKSPACE_ID
