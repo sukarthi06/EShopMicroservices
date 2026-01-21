@@ -14,10 +14,18 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      ACR_NAME: eshopkarthiacr
+      IMAGE_TAG: latest
+      RG_NAME: rg-eshop-prod
+      ENV_NAME: eshop-env
+
     steps:
+      # 1️⃣ Checkout
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 2️⃣ Azure Login (OIDC)
       - name: Azure Login via OIDC
         uses: azure/login@v2
         with:
@@ -25,97 +33,135 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      - name: Login to ACR
-        run: |
-          az acr login --name eshopkarthiacr
+      # 3️⃣ Setup .NET
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
 
+      # 4️⃣ Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # 5️⃣ Install Angular CLI
+      - name: Install Angular CLI
+        run: npm install -g @angular/cli@21
+
+      # 6️⃣ Login to ACR
+      - name: Login to Azure Container Registry
+        run: az acr login --name $ACR_NAME
+
+      # 7️⃣ Build & Push Docker Images (NO COMPOSE, NO LOOPS)
       - name: Build & Push Docker Images
         run: |
           set -e
-          ACR_NAME=eshopkarthiacr
-          TAG=latest
 
           echo "Building catalog.api"
-          docker build -f src/Services/Catalog/Catalog.Api/Dockerfile -t $ACR_NAME.azurecr.io/catalog.api:$TAG .
-          docker push $ACR_NAME.azurecr.io/catalog.api:$TAG
+          docker build -f src/Services/Catalog/Catalog.Api/Dockerfile \
+            -t $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG .
+          docker push $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG
 
           echo "Building basket.api"
-          docker build -f src/Services/Basket/Basket.Api/Dockerfile -t $ACR_NAME.azurecr.io/basket.api:$TAG .
-          docker push $ACR_NAME.azurecr.io/basket.api:$TAG
+          docker build -f src/Services/Basket/Basket.Api/Dockerfile \
+            -t $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG .
+          docker push $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG
 
           echo "Building discount.grpc"
-          docker build -f src/Services/Discount/Discount.Grpc/Dockerfile -t $ACR_NAME.azurecr.io/discount.grpc:$TAG .
-          docker push $ACR_NAME.azurecr.io/discount.grpc:$TAG
+          docker build -f src/Services/Discount/Discount.Grpc/Dockerfile \
+            -t $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG .
+          docker push $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG
 
           echo "Building ordering.api"
-          docker build -f src/Services/Ordering/Ordering.Api/Dockerfile -t $ACR_NAME.azurecr.io/ordering.api:$TAG .
-          docker push $ACR_NAME.azurecr.io/ordering.api:$TAG
+          docker build -f src/Services/Ordering/Ordering.Api/Dockerfile \
+            -t $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG .
+          docker push $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG
 
-          echo "Building yarp.gateway"
-          docker build -f src/ApiGateways/YarpApiGateway/Dockerfile -t $ACR_NAME.azurecr.io/yarp.gateway:$TAG .
-          docker push $ACR_NAME.azurecr.io/yarp.gateway:$TAG
+          echo "Building yarp.api.gateway"
+          docker build -f src/ApiGateways/YarpApiGateway/Dockerfile \
+            -t $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG .
+          docker push $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG
 
           echo "Building eshop.ui"
-          docker build -f client/eshop-app/Dockerfile -t $ACR_NAME.azurecr.io/eshop.ui:$TAG .
-          docker push $ACR_NAME.azurecr.io/eshop.ui:$TAG
+          docker build ./client/eshop-app \
+            -f ./client/eshop-app/Dockerfile \
+            -t $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
+          docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
 
+      # 8️⃣ Ensure Container Apps Environment
+      - name: Ensure Container Apps Environment
+        run: |
+          az containerapp env create \
+            --name $ENV_NAME \
+            --resource-group $RG_NAME \
+            --location eastus || true
+
+      # 9️⃣ Deploy to Azure Container Apps
       - name: Deploy to Azure Container Apps
         run: |
           RG=rg-eshop-prod
           ENV=eshop-env
           ACR=eshopkarthiacr
           TAG=latest
+          LOG_WORKSPACE_ID="/subscriptions/bc61920f-ff6d-4003-bf9f-60850a588787/resourceGroups/rg-eshop-prod/providers/Microsoft.OperationalInsights/workspaces/eshop-log-workspace"
 
           az containerapp up \
             --name catalog-api \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/catalog.api:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress internal \
-            --target-port 8080
+            --resource-group $RG_NAME \
+            --image $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG \
+            --environment $ENV_NAME \
+            --registry-server $ACR_NAME.azurecr.io \
+            --ingress external \
+            --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name basket-api \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/basket.api:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress internal \
-            --target-port 8080
+            --resource-group $RG_NAME \
+            --image $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG \
+            --environment $ENV_NAME \
+            --registry-server $ACR_NAME.azurecr.io \
+            --ingress external \
+            --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name discount-grpc \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/discount.grpc:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress internal \
-            --target-port 8080
+            --resource-group $RG_NAME \
+            --image $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG \
+            --environment $ENV_NAME \
+            --registry-server $ACR_NAME.azurecr.io \
+            --ingress external \
+            --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name ordering-api \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/ordering.api:$TAG \
-            --registry-server $ACR.azurecr.io \
-            --ingress internal \
-            --target-port 8080
+            --resource-group $RG_NAME \
+            --image $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG \
+            --environment $ENV_NAME \
+            --registry-server $ACR_NAME.azurecr.io \
+            --ingress external \
+            --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
-            --name yarp-gateway \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/yarp.gateway:$TAG \
-            --registry-server $ACR.azurecr.io \
+            --name yarp-api-gateway \
+            --resource-group $RG_NAME \
+            --image $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG \
+            --environment $ENV_NAME \
+            --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
-            --target-port 8080
+            --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
 
           az containerapp up \
             --name eshop-ui \
-            --resource-group $RG \
-            --environment $ENV \
-            --image $ACR.azurecr.io/eshop.ui:$TAG \
-            --registry-server $ACR.azurecr.io \
+            --resource-group $RG_NAME \
+            --image $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG \
+            --environment $ENV_NAME \
+            --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
-            --target-port 80
+            --target-port 8080 \
+            --logs-workspace-id $LOG_WORKSPACE_ID
