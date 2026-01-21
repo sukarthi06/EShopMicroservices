@@ -87,15 +87,7 @@ jobs:
           docker build ./client/eshop-app \
             -f ./client/eshop-app/Dockerfile \
             -t $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
-          docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
-
-      # 8️⃣ Ensure Container Apps Environment
-      - name: Ensure Container Apps Environment
-        run: |
-          az containerapp env create \
-            --name $ENV_NAME \
-            --resource-group $RG_NAME \
-            --location eastus || true
+          docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG     
 
       # 9️⃣ Deploy to Azure Container Apps
       - name: Deploy to Azure Container Apps
