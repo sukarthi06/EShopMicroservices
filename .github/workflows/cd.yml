@@ -108,7 +108,8 @@ jobs:
             --image $ACR_NAME.azurecr.io/catalog.api:$IMAGE_TAG \
             --environment $ENV_NAME \
             --registry-server $ACR_NAME.azurecr.io \
-            --ingress internal || true
+            --ingress external \
+            --target-port 8080 \
 
           az containerapp up \
             --name basket-api \
@@ -116,7 +117,8 @@ jobs:
             --image $ACR_NAME.azurecr.io/basket.api:$IMAGE_TAG \
             --environment $ENV_NAME \
             --registry-server $ACR_NAME.azurecr.io \
-            --ingress internal || true
+            --ingress external \
+            --target-port 8080 \
 
           az containerapp up \
             --name discount-grpc \
@@ -124,7 +126,8 @@ jobs:
             --image $ACR_NAME.azurecr.io/discount.grpc:$IMAGE_TAG \
             --environment $ENV_NAME \
             --registry-server $ACR_NAME.azurecr.io \
-            --ingress internal || true
+            --ingress external \
+            --target-port 8080 \
 
           az containerapp up \
             --name ordering-api \
@@ -132,7 +135,8 @@ jobs:
             --image $ACR_NAME.azurecr.io/ordering.api:$IMAGE_TAG \
             --environment $ENV_NAME \
             --registry-server $ACR_NAME.azurecr.io \
-            --ingress internal || true
+            --ingress external \
+            --target-port 8080 \
 
           az containerapp up \
             --name yarp-api-gateway \
@@ -140,7 +144,8 @@ jobs:
             --image $ACR_NAME.azurecr.io/yarpapigateway:$IMAGE_TAG \
             --environment $ENV_NAME \
             --registry-server $ACR_NAME.azurecr.io \
-            --ingress internal || true
+            --ingress external \
+            --target-port 8080 \
 
           az containerapp up \
             --name eshop-ui \
@@ -148,4 +153,5 @@ jobs:
             --image $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG \
             --environment $ENV_NAME \
             --registry-server $ACR_NAME.azurecr.io \
-            --ingress internal || true
+            --ingress external \
+            --target-port 8080 \
