@@ -155,5 +155,5 @@ jobs:
             --environment $ENV_NAME \
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
-            --target-port 8080 \
+            --target-port 80 \
             --logs-workspace-id $LOG_WORKSPACE_ID
