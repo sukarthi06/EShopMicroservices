@@ -417,6 +417,9 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
+# Secret storage files
+*.secret.json
+
 # SQLite database files
 *.db
 *.db-shm
