@@ -108,7 +108,7 @@ jobs:
             --target-port 8080 \
             --logs-workspace-id $LOG_WORKSPACE_ID \
             --set-env-vars \
-              "ConnectionStrings__CatalogDb=Host=${{ secrets.POSTGRES_SERVER }};Port=5432;Database=${{secrets.POSTGRES_CATALOGDB}};Username=${{ secrets.POSTGRES_USERNAME }};Password=${{ secrets.POSTGRES_PASSWORD }};SslMode=Require"
+              "ConnectionStrings__CatalogDb=Host=${{ secrets.POSTGRES_SERVER }}\;Port=5432;Database=${{secrets.POSTGRES_CATALOGDB}}\;Username=${{ secrets.POSTGRES_USERNAME }}\;Password=${{ secrets.POSTGRES_PASSWORD }}\;SslMode=Require"
 
           az containerapp up \
             --name basket-api \
