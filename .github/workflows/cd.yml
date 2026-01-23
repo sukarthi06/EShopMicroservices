@@ -19,6 +19,18 @@ jobs:
       IMAGE_TAG: latest
       RG_NAME: rg-eshop-prod
       ENV_NAME: eshop-env
+      AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      POSTGRES_SERVER: ${{ secrets.POSTGRES_SERVER }}
+      POSTGRES_CATALOGDB: ${{ secrets.POSTGRES_CATALOGDB }}
+      POSTGRES_USERNAME: ${{ secrets.POSTGRES_USERNAME }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+      POSTGRES_BASKETDB: ${{ secrets.POSTGRES_BASKETDB }}
+      POSTGRES_ORDERDB: ${{ secrets.POSTGRES_ORDERDB }}
+      REDIS_HOST_AND_PORT: ${{ secrets.REDIS_HOST_AND_PORT }}
+      REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
+      RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }} 
+      RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
 
     steps:
       # 1️⃣ Checkout
@@ -89,14 +101,15 @@ jobs:
             -t $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG
           docker push $ACR_NAME.azurecr.io/eshop.ui:$IMAGE_TAG     
 
-      # 9️⃣ Deploy to Azure Container Apps
+      # 9️⃣ Deploy to Azure Container Apps     
+
       - name: Deploy to Azure Container Apps
         run: |
           RG=rg-eshop-prod
           ENV=eshop-env
           ACR=eshopkarthiacr
           TAG=latest
-          LOG_WORKSPACE_ID="/subscriptions/bc61920f-ff6d-4003-bf9f-60850a588787/resourceGroups/rg-eshop-prod/providers/Microsoft.OperationalInsights/workspaces/eshop-log-workspace"
+          LOG_WORKSPACE_ID="/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/rg-eshop-prod/providers/Microsoft.OperationalInsights/workspaces/eshop-log-workspace"
 
           az containerapp up \
             --name catalog-api \
@@ -108,7 +121,7 @@ jobs:
             --target-port 8080 \
             --logs-workspace-id $LOG_WORKSPACE_ID \
             --set-env-vars \
-              "ConnectionStrings__CatalogDb=Host=${{ secrets.POSTGRES_SERVER }}\;Port=5432;Database=${{secrets.POSTGRES_CATALOGDB}}\;Username=${{ secrets.POSTGRES_USERNAME }}\;Password=${{ secrets.POSTGRES_PASSWORD }}\;SslMode=Require"
+              ConnectionStrings__CatalogDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_CATALOGDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require"
 
           az containerapp up \
             --name basket-api \
