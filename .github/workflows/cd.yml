@@ -104,11 +104,7 @@ jobs:
       # 9️⃣ Deploy to Azure Container Apps     
 
       - name: Deploy to Azure Container Apps
-        run: |
-          RG=rg-eshop-prod
-          ENV=eshop-env
-          ACR=eshopkarthiacr
-          TAG=latest
+        run: |          
           LOG_WORKSPACE_ID="/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/rg-eshop-prod/providers/Microsoft.OperationalInsights/workspaces/eshop-log-workspace"
 
           az containerapp up \
@@ -133,11 +129,11 @@ jobs:
             --target-port 8080 \
             --logs-workspace-id $LOG_WORKSPACE_ID \
             --set-env-vars \
-              "ConnectionStrings__BasketDb=Host=${{ secrets.POSTGRES_SERVER }};Port=5432;Database=${{secrets.POSTGRES_BASKETDB}};Username=${{ secrets.POSTGRES_USERNAME }};Password=${{ secrets.POSTGRES_PASSWORD }};SslMode=Require" \
-              "ConnectionStrings__Redis=Host=${{ secrets.REDIS_HOST_AND_PORT }};Password=${{ secrets.REDIS_PASSWORD }};Ssl=True;AbortConnect=False" \
-              "MessageBroker__Host=${{ secrets.RABBITMQ_HOST }}" \
-              "MessageBroker__UserName=${{ secrets.RABBITMQ_USER }}" \
-              "MessageBroker__Password=${{ secrets.RABBITMQ_PASSWORD }}"
+              ConnectionStrings__BasketDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_BASKETDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
+              ConnectionStrings__Redis="Host=${REDIS_HOST_AND_PORT};Password=${REDIS_PASSWORD};Ssl=True;AbortConnect=False" \
+              MessageBroker__Host="${RABBITMQ_HOST}" \
+              MessageBroker__UserName="${RABBITMQ_USER}" \
+              MessageBroker__Password="${RABBITMQ_PASSWORD}"
 
           az containerapp up \
             --name discount-grpc \
@@ -159,10 +155,10 @@ jobs:
             --target-port 8080 \
             --logs-workspace-id $LOG_WORKSPACE_ID \
             --set-env-vars \
-              "ConnectionStrings__OrderDb=Host=${{ secrets.POSTGRES_SERVER }};Port=5432;Database=${{secrets.POSTGRES_ORDERDB}};Username=${{ secrets.POSTGRES_USERNAME }};Password=${{ secrets.POSTGRES_PASSWORD }};SslMode=Require" \
-              "MessageBroker__Host=${{ secrets.RABBITMQ_HOST }}" \
-              "MessageBroker__UserName=${{ secrets.RABBITMQ_USER }}" \
-              "MessageBroker__Password=${{ secrets.RABBITMQ_PASSWORD }}"
+              "ConnectionStrings__OrderDb=Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_ORDERDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
+              "MessageBroker__Host=${RABBITMQ_HOST}" \
+              "MessageBroker__UserName=${RABBITMQ_USER}" \
+              "MessageBroker__Password=${RABBITMQ_PASSWORD}"
 
 
           az containerapp up \
