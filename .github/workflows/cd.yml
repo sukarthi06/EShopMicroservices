@@ -108,7 +108,7 @@ jobs:
             --target-port 8080 \
             --logs-workspace-id $LOG_WORKSPACE_ID \
             --set-env-vars \
-              ConnectionStrings__Database="Host=eshop-postgres.postgres.database.azure.com;Database=CatalogDb;Username=eshopadmin;Password=Prunes123"
+              ConnectionStrings__Database="Host=eshop-postgres.postgres.database.azure.com;Database=CatalogDb;Username=eshopadmin@eshop-postgres;Password=Prunes123;SslMode=Require"
 
           az containerapp up \
             --name basket-api \
@@ -120,7 +120,7 @@ jobs:
             --target-port 8080 \
             --logs-workspace-id $LOG_WORKSPACE_ID \
             --set-env-vars \
-              ConnectionStrings__BasketDb="Host=eshop-postgres.postgres.database.azure.com;Database=CatalogDb;Username=eshopadmin;Password=Prunes123" \
+              ConnectionStrings__BasketDb="Host=eshop-postgres.postgres.database.azure.com;Database=CatalogDb;Username=eshopadmin@eshop-postgres;Password=Prunes123;SslMode=Require" \
               ConnectionStrings__Redis=eshop-redis-karthi.redis.cache.windows.net:6380,password=acsMpddytMBPjnu0fkZuBwPTZgtKw1dCaAzCaKPooF8=,ssl=True,abortConnect=False \
               MessageBroker__Host="amqps://tzsrfkbw:RZBZX7PoowXLuoDWHECj4Ui3fsKavJ8L@toucan.lmq.cloudamqp.com/tzsrfkbw" \
               MessageBroker__UserName="tzsrfkbw" \
