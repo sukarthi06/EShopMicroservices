@@ -105,7 +105,7 @@ jobs:
 
       - name: Deploy to Azure Container Apps
         run: |          
-          LOG_WORKSPACE_ID="/subscriptions/$AZURE_SUBSCRIPTION_ID/resourceGroups/rg-eshop-prod/providers/Microsoft.OperationalInsights/workspaces/eshop-log-workspace"
+          LOG_WORKSPACE_ID="/subscriptions/${AZURE_SUBSCRIPTION_ID}/resourceGroups/rg-eshop-prod/providers/Microsoft.OperationalInsights/workspaces/eshop-log-workspace"
 
           az containerapp up \
             --name catalog-api \
