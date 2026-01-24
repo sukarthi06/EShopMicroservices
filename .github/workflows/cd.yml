@@ -115,7 +115,11 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
+            --logs-workspace-id $LOG_WORKSPACE_ID
+
+          az containerapp update \
+            --name catalog-api \
+            --resource-group $RG_NAME \
             --set-env-vars \
               ConnectionStrings__CatalogDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_CATALOGDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require"
 
@@ -127,7 +131,11 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
+            --logs-workspace-id $LOG_WORKSPACE_ID
+          
+          az containerapp update \
+            --name basket-api \
+            --resource-group $RG_NAME \
             --set-env-vars \
               ConnectionStrings__BasketDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_BASKETDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
               ConnectionStrings__Redis="Host=${REDIS_HOST_AND_PORT};Password=${REDIS_PASSWORD};Ssl=True;AbortConnect=False" \
@@ -153,7 +161,11 @@ jobs:
             --registry-server $ACR_NAME.azurecr.io \
             --ingress external \
             --target-port 8080 \
-            --logs-workspace-id $LOG_WORKSPACE_ID \
+            --logs-workspace-id $LOG_WORKSPACE_ID
+          
+          az containerapp update \
+            --name ordering-api \
+            --resource-group $RG_NAME \
             --set-env-vars \
               "ConnectionStrings__OrderDb=Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_ORDERDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
               "MessageBroker__Host=${RABBITMQ_HOST}" \
