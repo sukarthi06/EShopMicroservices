@@ -120,6 +120,8 @@ jobs:
           az containerapp update \
             --name catalog-api \
             --resource-group $RG_NAME \
+            --min-replicas 1 \
+            --max-replicas 10 \
             --set-env-vars \
               ConnectionStrings__CatalogDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_CATALOGDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require"
 
@@ -136,6 +138,8 @@ jobs:
           az containerapp update \
             --name basket-api \
             --resource-group $RG_NAME \
+            --min-replicas 1 \
+            --max-replicas 10 \
             --set-env-vars \
               ConnectionStrings__BasketDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_BASKETDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
               ConnectionStrings__Redis="Host=${REDIS_HOST_AND_PORT};Password=${REDIS_PASSWORD};Ssl=True;AbortConnect=False" \
@@ -153,6 +157,12 @@ jobs:
             --target-port 8080 \
             --logs-workspace-id $LOG_WORKSPACE_ID
 
+          az containerapp update \
+            --name discount-grpc \
+            --resource-group $RG_NAME \
+            --min-replicas 1 \
+            --max-replicas 10 \
+
           az containerapp up \
             --name ordering-api \
             --resource-group $RG_NAME \
@@ -166,6 +176,8 @@ jobs:
           az containerapp update \
             --name ordering-api \
             --resource-group $RG_NAME \
+            --min-replicas 1 \
+            --max-replicas 10 \
             --set-env-vars \
               "ConnectionStrings__OrderDb=Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_ORDERDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
               "MessageBroker__Host=${RABBITMQ_HOST}" \
@@ -182,6 +194,12 @@ jobs:
             --ingress external \
             --target-port 8080 \
             --logs-workspace-id $LOG_WORKSPACE_ID
+          
+          az containerapp update \
+            --name yarp-api-gateway \
+            --resource-group $RG_NAME \
+            --min-replicas 1 \
+            --max-replicas 10
 
           az containerapp up \
             --name eshop-ui \
@@ -192,3 +210,9 @@ jobs:
             --ingress external \
             --target-port 80 \
             --logs-workspace-id $LOG_WORKSPACE_ID
+
+          az containerapp update \
+            --name eshop-ui \
+            --resource-group $RG_NAME \
+            --min-replicas 1 \
+            --max-replicas 10 \
