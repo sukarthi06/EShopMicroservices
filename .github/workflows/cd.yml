@@ -28,6 +28,7 @@ jobs:
       POSTGRES_ORDERDB: ${{ secrets.POSTGRES_ORDERDB }}
       REDIS_HOST_AND_PORT: ${{ secrets.REDIS_HOST_AND_PORT }}
       REDIS_PASSWORD: ${{ secrets.REDIS_PASSWORD }}
+      REDIS_CONNECTION_STRING: ${{ secrets.REDIS_CONNECTION_STRING }}
       RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
       RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }} 
       RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
@@ -147,7 +148,7 @@ jobs:
             --max-replicas 10 \
             --set-env-vars \
               ConnectionStrings__BasketDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_BASKETDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
-              ConnectionStrings__Redis="Host=${REDIS_HOST_AND_PORT};Password=${REDIS_PASSWORD};Ssl=True;AbortConnect=False" \
+              ConnectionStrings__Redis="${REDIS_CONNECTION_STRING}" \
               GrpcSettings__DiscountUrl="${DISCOUNT_GRPC_URL}" \
               MessageBroker__Host="${RABBITMQ_HOST}" \
               MessageBroker__UserName="${RABBITMQ_USER}" \
