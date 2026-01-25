@@ -43,6 +43,7 @@ app.UseRouting();
 
 app.UseRateLimiter();
 app.UseCors("CorsPolicy");
-app.MapReverseProxy();
+app.MapReverseProxy()
+    .RequireCors("CorsPolicy");
 
 app.Run();
