@@ -12,8 +12,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("CorsPolicy", policy =>
     {
         policy
-            .WithOrigins("http://localhost:4200", "http://localhost:8080", 
-                            "https://yarp-api-gateway.wittydune-62951da6.eastus.azurecontainerapps.io") // Angular app
+            .WithOrigins("http://localhost:4200", "http://localhost:8080",
+                            "https://eshop-ui.wittydune-62951da6.eastus.azurecontainerapps.io") // Angular app
             .AllowAnyHeader()
             .AllowAnyMethod();
         //.AllowCredentials(); // only if using cookies/auth
