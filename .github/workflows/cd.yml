@@ -15,10 +15,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ACR_NAME: eshopkarthiacr
+      ACR_NAME: ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}
       IMAGE_TAG: latest
-      RG_NAME: rg-eshop-prod
-      ENV_NAME: eshop-env
+      RG_NAME: ${{ secrets.AZURE_RG_NAME }}
+      ENV_NAME: ${{ secrets.AZURE_CONTAINER_APPS_ENVIRONMENT }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
       POSTGRES_SERVER: ${{ secrets.POSTGRES_SERVER }}
       POSTGRES_CATALOGDB: ${{ secrets.POSTGRES_CATALOGDB }}
@@ -31,6 +31,11 @@ jobs:
       RABBITMQ_HOST: ${{ secrets.RABBITMQ_HOST }}
       RABBITMQ_USER: ${{ secrets.RABBITMQ_USER }} 
       RABBITMQ_PASSWORD: ${{ secrets.RABBITMQ_PASSWORD }}
+      GATEWAY_URL: ${{ secrets.GATEWAY_URL }}
+      CATALOG_URL: ${{ secrets.CATALOG_URL }}
+      BASKET_URL: ${{ secrets.BASKET_URL }}
+      DISCOUNT_GRPC_URL: ${{ secrets.DISCOUNT_GRPC_URL }}
+      ORDERING_URL: ${{ secrets.ORDERING_URL }}
 
     steps:
       # 1️⃣ Checkout
@@ -143,6 +148,7 @@ jobs:
             --set-env-vars \
               ConnectionStrings__BasketDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_BASKETDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
               ConnectionStrings__Redis="Host=${REDIS_HOST_AND_PORT};Password=${REDIS_PASSWORD};Ssl=True;AbortConnect=False" \
+              GrpcSettings__DiscountUrl="${DISCOUNT_GRPC_URL}" \
               MessageBroker__Host="${RABBITMQ_HOST}" \
               MessageBroker__UserName="${RABBITMQ_USER}" \
               MessageBroker__Password="${RABBITMQ_PASSWORD}"
@@ -179,11 +185,10 @@ jobs:
             --min-replicas 1 \
             --max-replicas 10 \
             --set-env-vars \
-              "ConnectionStrings__OrderDb=Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_ORDERDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
-              "MessageBroker__Host=${RABBITMQ_HOST}" \
-              "MessageBroker__UserName=${RABBITMQ_USER}" \
-              "MessageBroker__Password=${RABBITMQ_PASSWORD}"
-
+              ConnectionStrings__OrderDb="Host=${POSTGRES_SERVER};Port=5432;Database=${POSTGRES_ORDERDB};Username=${POSTGRES_USERNAME};Password=${POSTGRES_PASSWORD};SslMode=Require" \
+              MessageBroker__Host="${RABBITMQ_HOST}" \
+              MessageBroker__UserName="${RABBITMQ_USER}" \
+              MessageBroker__Password="${RABBITMQ_PASSWORD}"
 
           az containerapp up \
             --name yarp-api-gateway \
@@ -199,7 +204,11 @@ jobs:
             --name yarp-api-gateway \
             --resource-group $RG_NAME \
             --min-replicas 1 \
-            --max-replicas 10
+            --max-replicas 10 \
+            --set-env-vars \
+              ReverseProxy__Clusters__catalog-cluster__Destinations__destination1__Address="${CATALOG_URL}" \
+              ReverseProxy__Clusters__basket-cluster__Destinations__destination1__Address="${BASKET_URL}" \
+              ReverseProxy__Clusters__ordering-cluster__Destinations__destination1__Address="${ORDERING_URL}"
 
           az containerapp up \
             --name eshop-ui \
