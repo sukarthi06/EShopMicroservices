@@ -41,9 +41,21 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 
 app.UseRouting();
+app.UseCors("CorsPolicy");
+
+app.Use(async (context, next) =>
+{
+    if (context.Request.Method == HttpMethods.Options)
+    {
+        context.Response.StatusCode = StatusCodes.Status204NoContent;
+        return;
+    }
+
+    await next();
+});
 
 app.UseRateLimiter();
-app.UseCors("CorsPolicy");
+
 app.MapReverseProxy()
     .RequireCors("CorsPolicy");
 
