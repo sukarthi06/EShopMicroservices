@@ -56,7 +56,7 @@ app.UseCors("CorsPolicy");
 
 app.UseRateLimiter();
 
-app.MapReverseProxy()
-    .RequireCors("CorsPolicy");
+app.MapReverseProxy();
+    //.RequireCors("CorsPolicy");
 
 app.Run();
