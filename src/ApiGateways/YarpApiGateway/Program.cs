@@ -40,9 +40,6 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-app.UseRouting();
-app.UseCors("CorsPolicy");
-
 app.Use(async (context, next) =>
 {
     if (context.Request.Method == HttpMethods.Options)
@@ -53,6 +50,9 @@ app.Use(async (context, next) =>
 
     await next();
 });
+
+app.UseRouting();
+app.UseCors("CorsPolicy");
 
 app.UseRateLimiter();
 
