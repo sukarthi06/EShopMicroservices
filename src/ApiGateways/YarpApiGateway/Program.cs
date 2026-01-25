@@ -15,7 +15,8 @@ builder.Services.AddCors(options =>
             .WithOrigins("http://localhost:4200", "http://localhost:8080",
                             "https://eshop-ui.wittydune-62951da6.eastus.azurecontainerapps.io") // Angular app
             .AllowAnyHeader()
-            .AllowAnyMethod();
+            .AllowAnyMethod()
+            .WithExposedHeaders("*");
         //.AllowCredentials(); // only if using cookies/auth
     });
 });
