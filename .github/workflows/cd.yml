@@ -16,7 +16,7 @@ jobs:
 
     env:
       ACR_NAME: ${{ secrets.AZURE_CONTAINER_REGISTRY_NAME }}
-      IMAGE_TAG: latest
+      IMAGE_TAG: ${{ github.sha }}
       RG_NAME: ${{ secrets.AZURE_RG_NAME }}
       ENV_NAME: ${{ secrets.AZURE_CONTAINER_APPS_ENVIRONMENT }}
       AZURE_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
