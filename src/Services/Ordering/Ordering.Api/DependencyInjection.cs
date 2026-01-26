@@ -13,7 +13,7 @@ namespace Ordering.Api
             services.AddExceptionHandler<CustomExceptionHandler>();
             
             services.AddHealthChecks()
-                .AddSqlServer(configuration.GetConnectionString("OrderDb")!);
+                .AddNpgSql(configuration.GetConnectionString("OrderDb")!);
 
             return services;
         }
