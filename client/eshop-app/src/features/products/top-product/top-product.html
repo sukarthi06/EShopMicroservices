@@ -1,0 +1,30 @@
+<div class="card">
+    <div class="card-header bg-success text-white text-uppercase">
+        <i class="fa fa-heart"></i> Top product
+    </div>
+
+    <a [routerLink]="['/productdetail', product.id]">
+        <img class="img-fluid border-0" [src]="'assets/images/product/' + product.imageFile" [alt]="product.name">
+    </a>
+
+    <div class="card-body">
+        <h4 class="card-title text-center">
+            <a [routerLink]="['/productdetail', product.id]" title="View Product">
+                {{ product.name }}
+            </a>
+        </h4>
+
+        <div class="row">
+            <div class="col">
+                <p class="btn btn-danger btn-block">
+                    {{ product.price }} $
+                </p>
+            </div>
+            <div class="col">
+                <a routerLink="/productdetail/{product.id}" class="btn btn-success btn-block">
+                    View
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
