@@ -40,7 +40,9 @@
                 <div class="card bg-light mb-3">
                     <div class="card-header bg-success text-white text-uppercase">Last product</div>
                     <div class="card-body">
-                        <img asp-append-version="true" class="img-fluid" [src]="'assets/images/product/' + lastProduct()?.imageFile" />
+                        <a href="productdetail/{{lastProduct()?.id}}">
+                            <img class="img-fluid" [src]="'assets/images/product/' + lastProduct()?.imageFile" />
+                        </a>                        
                         <h5 class="card-title">{{lastProduct()?.name}}</h5>
                         <p class="card-text">{{lastProduct()?.description}}</p>
                         <p class="bloc_left_price">{{lastProduct()?.price}} $</p>
@@ -55,9 +57,9 @@
                     @for (product of products(); track product.id) {
                         <div class="col-12 col-md-6 col-lg-4">
                             <div class="card">
-                                <a><img class="card-img-top" [src]="'assets/images/product/' + product.imageFile" alt="{{product.name}}"></a>
+                                <a href="productdetail/{{product.id}}"><img class="card-img-top" [src]="'assets/images/product/' + product.imageFile" alt="{{product.name}}"></a>
                                 <div class="card-body">
-                                    <h4 class="card-title"><a class="color-main">{{product.name}}</a></h4>
+                                    <h4 class="card-title"><a href="productdetail/{{product.id}}" class="color-main">{{product.name}}</a></h4>
                                     <p class="card-text">{{product.description}}</p>
                                     <div class="row">
                                         <div class="col px-2">

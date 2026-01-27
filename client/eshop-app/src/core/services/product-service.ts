@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { Product, ProductsResponse } from '../../types/product';
+import { Product, ProductResponse, ProductsResponse } from '../../types/product';
 
 @Injectable({
   providedIn: 'root',
@@ -13,5 +13,9 @@ export class ProductService {
 
   getProducts(){
     return this.http.get<ProductsResponse>(this.baseUrl + 'products');
+  }
+
+  getProductById(id: string){
+    return this.http.get<ProductResponse>(this.baseUrl + 'products/' + id);
   }
 }
