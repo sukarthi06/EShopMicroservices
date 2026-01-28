@@ -1,0 +1,36 @@
+<div class="card">
+  <a [routerLink]="['/productdetail', product.id]">
+    <img class="card-img-top"
+         [src]="'assets/images/product/' + product.imageFile"
+         [alt]="product.name">
+  </a>
+
+  <div class="card-body">
+    <h4 class="card-title">
+      <a class="color-main"
+         [routerLink]="['/productdetail', product.id]">
+        {{ product.name }}
+      </a>
+    </h4>
+
+    <p class="card-text">
+      {{ product.description }}
+    </p>
+
+    <div class="row">
+      <div style="width: 40%;margin-left: 5px;">
+        <p class="btn btn-danger btn-block">
+          {{ product.price }} $
+        </p>
+      </div>
+
+      <div style="width: 50%;margin-left: 5px;">
+        <button type="button"
+                class="btn btn-success btn-block"
+                (click)="addToCart()">
+          Add to Cart
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
