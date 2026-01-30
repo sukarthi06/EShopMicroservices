@@ -15,8 +15,8 @@ builder.Services.AddCors(options =>
             .WithOrigins("http://localhost:4200", "http://localhost:8080",
                             "https://eshop-ui.wittydune-62951da6.eastus.azurecontainerapps.io") // Angular app
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .WithExposedHeaders("*");
+            .AllowAnyMethod();
+            //.WithExposedHeaders("*");
         //.AllowCredentials(); // only if using cookies/auth
     });
 });
@@ -40,23 +40,24 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-app.Use(async (context, next) =>
-{
-    if (context.Request.Method == HttpMethods.Options)
-    {
-        context.Response.StatusCode = StatusCodes.Status204NoContent;
-        return;
-    }
+//app.Use(async (context, next) =>
+//{
+//    if (context.Request.Method == HttpMethods.Options)
+//    {
+//        context.Response.StatusCode = StatusCodes.Status204NoContent;
+//        return;
+//    }
 
-    await next();
-});
+//    await next();
+//});
+
+app.UseCors("CorsPolicy");
 
 app.UseRouting();
-app.UseCors("CorsPolicy");
+
 
 app.UseRateLimiter();
 
 app.MapReverseProxy();
-    //.RequireCors("CorsPolicy");
 
 app.Run();

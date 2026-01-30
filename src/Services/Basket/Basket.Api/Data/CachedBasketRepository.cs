@@ -33,4 +33,15 @@ public class CachedBasketRepository(IBasketRepository repository, IDistributedCa
 
         return true;
     }
+    /// <summary>
+    /// Checks if a basket exists for the given user name.
+    /// </summary>
+    /// <param name="userName">user name</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<bool> CheckBasket(string userName, CancellationToken cancellationToken = default)
+    {
+        var existsInCache = await cache.GetStringAsync(userName, cancellationToken);
+        return !string.IsNullOrEmpty(existsInCache);
+    }
 }

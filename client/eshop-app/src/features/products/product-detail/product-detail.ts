@@ -2,6 +2,7 @@ import { Component, inject, OnInit, signal } from '@angular/core';
 import { Product } from '../../../types/product';
 import { ProductService } from '../../../core/services/product-service';
 import { ActivatedRoute, RouterLink } from "@angular/router";
+import { BasketService } from '../../../core/services/basket-service';
 
 @Component({
   selector: 'app-product-detail',
@@ -14,17 +15,21 @@ export class ProductDetail implements OnInit {
   private route = inject(ActivatedRoute);  
   private productId: string = '';
   private productService = inject(ProductService);
+  private basketService = inject(BasketService);
 
   protected product = signal<Product | null>(null);
   protected quantity = signal<number>(1);
+  protected selectedColor = signal<string>('Black');
 
-  ngOnInit(): void {
-    
-    this.productId = this.route.snapshot.paramMap.get('id') || '';    
-    this.productService.getProductById(this.productId).subscribe({
-      next: (response) => this.product.set(response.product),
-      error: (error) => console.error('Error fetching product:', error)
-    });
+  async ngOnInit(): Promise<void> {
+
+    try {
+      this.productId = this.route.snapshot.paramMap.get('id') || '';
+      const response = await this.productService.getProductById(this.productId);
+      this.product.set(response.product);
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   increaseQuantity(): void {
@@ -34,5 +39,17 @@ export class ProductDetail implements OnInit {
     if (this.quantity() > 1) {
       this.quantity.set(this.quantity() - 1);
     } 
+  }
+
+  async addToCart(): Promise<void> {
+    if (!this.product()) return;
+
+    await this.basketService.addItemToBasket({
+      productId: this.product()!.id,
+      productName: this.product()!.name,
+      quantity: this.quantity(),
+      color: this.selectedColor(),
+      price: this.product()!.price
+    });
   }
 }

@@ -34,7 +34,7 @@
                     <form method="post" name="addToCartForm" id="add_cart_form">
                         <div class="form-group">
                             <label for="colors">Color</label>
-                            <select class="custom-select" id="colors">
+                            <select class="custom-select" id="colors" [value]="selectedColor()">
                                 <option selected>Black</option>
                                 <option value="Blue">Blue</option>
                                 <option value="Red">Red</option>
@@ -57,7 +57,7 @@
                                 </div>
                             </div>
                         </div>
-                        <a href="javascript:;" class="btn btn-success btn-lg btn-block text-uppercase">
+                        <a href="javascript:;" class="btn btn-success btn-lg btn-block text-uppercase" (click)="addToCart()">
                             <i class="fa fa-shopping-cart"></i> Add To Cart
                         </a>
                     </form>
