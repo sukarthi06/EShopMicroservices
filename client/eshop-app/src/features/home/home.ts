@@ -31,12 +31,12 @@ export class Home implements OnInit {
     return items.slice(-4);
   }
 
-  ngOnInit(): void {
-    this.productService.getProducts().subscribe({
-      next: response => {
-        this.products.set(response.products);
-      },
-      error: error => console.log(error)
-    });
+  async ngOnInit() {
+    try {
+      const response = await this.productService.getProducts();
+      this.products.set(response.products);
+    } catch (error) {
+      console.error(error);
+    }
   }
 }

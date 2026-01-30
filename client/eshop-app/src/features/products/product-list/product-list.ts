@@ -21,15 +21,16 @@ export class ProductList implements OnInit {
     return items.length ? items[items.length - 1] : undefined;
   });
 
-  ngOnInit(): void {
-    this.productService.getProducts().subscribe({
-      next: response => {        
-        this.products.set(response.products);
-        this.allProducts.set(response.products);
-        this.setCategories();
-      },
-      error: error => console.log(error)
-    });
+  async ngOnInit(): Promise<void> {
+    try {
+      const response = await this.productService.getProducts();
+
+      this.products.set(response.products);
+      this.allProducts.set(response.products);
+      this.setCategories();
+    } catch (error) {
+      console.error(error);
+    }
   }
 
   setCategories(): void {

@@ -1,4 +1,6 @@
-﻿namespace Basket.Api.Data;
+﻿using JasperFx.Core;
+
+namespace Basket.Api.Data;
 
 public class BasketRepository(IDocumentSession session) : IBasketRepository
 {    
@@ -23,4 +25,15 @@ public class BasketRepository(IDocumentSession session) : IBasketRepository
         return true;
     }
 
+    /// <summary>
+    /// Checks if a basket exists for the given user name.
+    /// </summary>
+    /// <param name="userName">user name</param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    public async Task<bool> CheckBasket(string userName, CancellationToken cancellationToken = default)
+    {
+        var basket = await session.LoadAsync<ShoppingCart>(userName, cancellationToken);
+        return basket is null;
+    }
 }

@@ -9,7 +9,6 @@ export type ShoppingCartItemModel = {
 export type ShoppingCartModel = {
   userName: string;
   items: ShoppingCartItemModel[];
-  totalPrice: number;
 }
 
 export interface GetBasketResponse {
@@ -56,5 +55,8 @@ export interface BasketCheckoutRequest {
 }
 
 export interface BasketCheckoutResponse {
+  isSuccess: boolean;
+}
+export interface CheckBasketResponse {
   isSuccess: boolean;
 }
