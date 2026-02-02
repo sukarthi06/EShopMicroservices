@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { Product } from '../../../types/product';
 import { ProductService } from '../../../core/services/product-service';
-import { ActivatedRoute, RouterLink } from "@angular/router";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { BasketService } from '../../../core/services/basket-service';
 
 @Component({
@@ -13,6 +13,7 @@ import { BasketService } from '../../../core/services/basket-service';
 export class ProductDetail implements OnInit {
   
   private route = inject(ActivatedRoute);  
+  private router = inject(Router);
   private productId: string = '';
   private productService = inject(ProductService);
   private basketService = inject(BasketService);
@@ -20,7 +21,7 @@ export class ProductDetail implements OnInit {
   protected product = signal<Product | null>(null);
   protected quantity = signal<number>(1);
   protected selectedColor = signal<string>('Black');
-
+  
   async ngOnInit(): Promise<void> {
 
     try {
@@ -50,6 +51,8 @@ export class ProductDetail implements OnInit {
       quantity: this.quantity(),
       color: this.selectedColor(),
       price: this.product()!.price
+    }).then(() => {
+      this.router.navigate(['/cart']);
     });
   }
 }

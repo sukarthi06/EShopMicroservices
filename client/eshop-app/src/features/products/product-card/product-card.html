@@ -1,7 +1,7 @@
 <div class="card">
   <a [routerLink]="['/productdetail', product.id]">
     <img class="card-img-top"
-         [src]="'assets/images/product/' + product.imageFile"
+         [src]="imageUrl()"
          [alt]="product.name">
   </a>
 

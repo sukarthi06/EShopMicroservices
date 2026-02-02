@@ -1,7 +1,8 @@
-import { Component, inject, Input } from '@angular/core';
+import { Component, inject, Input, OnInit, signal } from '@angular/core';
 import { Product } from '../../../types/product';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { BasketService } from '../../../core/services/basket-service';
+import { ImageService } from '../../../core/services/image-service';
 
 @Component({
   selector: 'app-product-card',
@@ -9,9 +10,19 @@ import { BasketService } from '../../../core/services/basket-service';
   templateUrl: './product-card.html',
   styleUrl: './product-card.css',
 })
-export class ProductCard {
+export class ProductCard implements OnInit {
+  
   @Input({ required: true }) product!: Product;
+  
   protected basketService = inject(BasketService);
+  protected imageService = inject(ImageService);
+  protected imageUrl = signal<string>('');
+
+  private router = inject(Router);
+
+  async ngOnInit(): Promise<void> {
+    this.imageUrl.set('assets/images/product/' + this.product.imageFile);    
+  }
 
   async addToCart(): Promise<void> {
 
@@ -21,6 +32,8 @@ export class ProductCard {
       quantity: 1,
       color: 'Black',
       price: this.product.price
+    }).then(() => {
+      this.router.navigate(['/cart']);
     });
 
   }
