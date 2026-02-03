@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { BasketCheckoutRequest, BasketCheckoutResponse, CheckBasketResponse, DeleteBasketResponse, GetBasketResponse, ShoppingCartItemModel, ShoppingCartModel, StoreBasketRequest, StoreBasketResponse } from '../../types/basket';
 import { firstValueFrom } from 'rxjs';
@@ -10,6 +10,8 @@ import { firstValueFrom } from 'rxjs';
 export class BasketService {
   private http = inject(HttpClient);
   private baseUrl = environment.apiUrl + '/basket-service/';
+
+  basketCount = signal<number>(0);
 
   async getBasket(userName: string): Promise<GetBasketResponse> {
     return await firstValueFrom(
@@ -29,10 +31,10 @@ export class BasketService {
     );
   }
 
-  async checkoutBasket(basketCheckoutRequest: BasketCheckoutRequest): Promise<BasketCheckoutResponse> {
+  async checkoutBasket(request: BasketCheckoutRequest): Promise<BasketCheckoutResponse> {
     return await firstValueFrom(
       this.http.post<BasketCheckoutResponse>(this.baseUrl + 'basket/checkout', 
-        { BasketCheckoutDto: basketCheckoutRequest.BasketCheckoutDto })
+        { BasketCheckoutDto: request.BasketCheckoutDto })
     );
   }
 
@@ -44,7 +46,9 @@ export class BasketService {
 
   async loadUserBasket(): Promise<ShoppingCartModel> {
     const userName = "kart123"; //localStorage.getItem('userName');
-    return (await this.getBasket(userName)).cart;
+    const cart = (await this.getBasket(userName)).cart;
+    this.basketCount.set(cart.items.length);
+    return cart;
   }
 
   async addItemToBasket(item: ShoppingCartItemModel): Promise<StoreBasketResponse> {

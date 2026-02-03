@@ -28,9 +28,9 @@
                 </button>
               </div>
             </div>
-            <a class="btn btn-success btn-sm ml-3">
+            <a class="btn btn-success btn-sm ml-3" routerLink="/cart">
               <i class="fa fa-shopping-cart"></i> Cart
-              <span class="badge badge-light">3</span>
+              <span class="badge badge-light">{{ basketService.basketCount() }}</span>
             </a>
           </form>
       </div>
