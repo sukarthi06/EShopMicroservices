@@ -18,7 +18,7 @@ export class Checkout implements OnInit {
   protected shoppingCart = signal<ShoppingCartModel | null>(null);
   protected totalPrice = signal<number>(0);
   protected basketCheckout = signal<BasketCheckoutModel | null>(null);
-  protected submitted = signal<boolean>(false);
+  
   // List of US states
   protected states: string[] = [
     'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 
@@ -36,7 +36,7 @@ export class Checkout implements OnInit {
     this.checkoutForm = new FormGroup({
       firstName: new FormControl('',Validators.required),
       lastName: new FormControl('',Validators.required),
-      email: new FormControl('',Validators.email),
+      email: new FormControl('',[Validators.email, Validators.required]),
       addressLine: new FormControl('',Validators.required),
       country: new FormControl('',Validators.required),
       state: new FormControl('',Validators.required),
@@ -57,14 +57,13 @@ export class Checkout implements OnInit {
   }
 
   async checkoutBasket() {
-    // this.submitted.set(true);
-
-    // if (this.checkoutForm.invalid) {
-    //   this.checkoutForm.markAllAsTouched();
-    //   return;
-    // }
+    
+    if (this.checkoutForm.invalid) {
+      this.checkoutForm.markAllAsTouched();
+      return;
+    }
     const cart = this.shoppingCart();    
-    if (!cart) return;
+    if (!cart || cart.items.length === 0) return;
 
     const formValue = this.checkoutForm.getRawValue();
     const checkoutModel: BasketCheckoutModel = {
@@ -85,15 +84,15 @@ export class Checkout implements OnInit {
       paymentMethod: 1 // Assuming 1 represents a specific payment method
     };
     
-    await this.basketService.checkoutBasket({ BasketCheckoutDto: checkoutModel }).then(response => {
-      if (response.isSuccess) {
-        // Handle successful checkout (e.g., navigate to confirmation page)
-        console.log('Checkout successful');
-      } else {
-        // Handle checkout failure (e.g., show error message)
-        console.log('Checkout failed');
-      }
-    });
+    // await this.basketService.checkoutBasket({ BasketCheckoutDto: checkoutModel }).then(response => {
+    //   if (response.isSuccess) {
+    //     // Handle successful checkout (e.g., navigate to confirmation page)
+    //     console.log('Checkout successful');
+    //   } else {
+    //     // Handle checkout failure (e.g., show error message)
+    //     console.log('Checkout failed');
+    //   }
+    // });
         
   }
 

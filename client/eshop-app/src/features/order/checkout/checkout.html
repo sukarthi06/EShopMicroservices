@@ -61,10 +61,10 @@
                             <input type="text" class="form-control" id="firstName" placeholder="First name"                                
                                 required
                                 formControlName="firstName"                                
-                                [class.is-invalid]="submitted() && checkoutForm.get('firstName')?.invalid 
+                                [class.is-invalid]="checkoutForm.get('firstName')?.invalid 
                                 && (checkoutForm.get('firstName')?.touched || checkoutForm.get('firstName')?.dirty)">
 
-                            @if(submitted() && checkoutForm.get('firstName')?.invalid 
+                            @if(checkoutForm.get('firstName')?.invalid 
                                 && (checkoutForm.get('firstName')?.touched || checkoutForm.get('firstName')?.dirty)) {
                                 <div class="invalid-feedback">
                                     Valid first name is required.
@@ -76,10 +76,10 @@
                             <input type="text" class="form-control" id="lastName" placeholder="Last name"
                                 required
                                 formControlName="lastName"
-                                [class.is-invalid]="submitted() && checkoutForm.get('lastName')?.invalid
+                                [class.is-invalid]="checkoutForm.get('lastName')?.invalid
                                 && (checkoutForm.get('lastName')?.touched || checkoutForm.get('lastName')?.dirty)">
 
-                            @if(submitted() && checkoutForm.get('lastName')?.invalid
+                            @if(checkoutForm.get('lastName')?.invalid
                                 && (checkoutForm.get('lastName')?.touched || checkoutForm.get('lastName')?.dirty)){
                                 <div class="invalid-feedback">
                                     Valid last name is required.
@@ -106,10 +106,10 @@
                         <input type="email" class="form-control" id="email" placeholder="you@example.com"
                         required
                         formControlName="email"
-                        [class.is-invalid]="submitted() && checkoutForm.get('email')?.invalid
+                        [class.is-invalid]="checkoutForm.get('email')?.invalid
                         && (checkoutForm.get('email')?.touched || checkoutForm.get('email')?.dirty)">
 
-                        @if(submitted() && checkoutForm.get('email')?.invalid
+                        @if(checkoutForm.get('email')?.invalid
                         && (checkoutForm.get('email')?.touched || checkoutForm.get('email')?.dirty)) {
                              <div class="invalid-feedback">
                                 Please enter a valid email address for shipping updates.
@@ -122,10 +122,10 @@
                         <input type="text" class="form-control" id="addressLine" placeholder="1234 Main St" 
                             required
                             formControlName="addressLine"
-                            [class.is-invalid]="submitted() && checkoutForm.get('addressLine')?.invalid
+                            [class.is-invalid]="checkoutForm.get('addressLine')?.invalid
                             && (checkoutForm.get('addressLine')?.touched || checkoutForm.get('addressLine')?.dirty)">
 
-                        @if(submitted() && checkoutForm.get('addressLine')?.invalid
+                        @if(checkoutForm.get('addressLine')?.invalid
                             && (checkoutForm.get('addressLine')?.touched || checkoutForm.get('addressLine')?.dirty)) {
                             <div class="invalid-feedback">
                                 Please enter your shipping address.
@@ -145,13 +145,13 @@
                             <select class="custom-select d-block w-100" id="country"
                                 required
                                 formControlName="country"
-                                [class.is-invalid]="submitted() && checkoutForm.get('country')?.invalid
+                                [class.is-invalid]="checkoutForm.get('country')?.invalid
                                 && (checkoutForm.get('country')?.touched || checkoutForm.get('country')?.dirty)">
                                 <option value="">Choose...</option>
                                 <option>United States</option>
                             </select>
 
-                            @if(submitted() && checkoutForm.get('country')?.invalid
+                            @if(checkoutForm.get('country')?.invalid
                                 && (checkoutForm.get('country')?.touched || checkoutForm.get('country')?.dirty)) {
                                 <div class="invalid-feedback">
                                     Please select a valid country.
@@ -163,7 +163,7 @@
                             <select class="custom-select d-block w-100" id="state"
                                 required
                                 formControlName="state"
-                                [class.is-invalid]="submitted() && checkoutForm.get('state')?.invalid
+                                [class.is-invalid]="checkoutForm.get('state')?.invalid
                                 && (checkoutForm.get('state')?.touched || checkoutForm.get('state')?.dirty)">
                                 <option value="">Choose...</option>                            
                                 @for (item of states; track $index) {
@@ -172,7 +172,7 @@
                             </select>
 
                             
-                            @if(submitted() && checkoutForm.get('state')?.invalid
+                            @if(checkoutForm.get('state')?.invalid
                                 && (checkoutForm.get('state')?.touched || checkoutForm.get('state')?.dirty)) {
                                 <div class="invalid-feedback">
                                     Please provide a valid state.
@@ -184,10 +184,10 @@
                             <input type="text" class="form-control" id="zip" placeholder=""
                                 required
                                 formControlName="zipCode"
-                                [class.is-invalid]="submitted() && checkoutForm.get('zipCode')?.invalid
+                                [class.is-invalid]="checkoutForm.get('zipCode')?.invalid
                                 && (checkoutForm.get('zipCode')?.touched || checkoutForm.get('zipCode')?.dirty)">
                             
-                            @if(submitted() && checkoutForm.get('zipCode')?.invalid
+                            @if(checkoutForm.get('zipCode')?.invalid
                                 && (checkoutForm.get('zipCode')?.touched || checkoutForm.get('zipCode')?.dirty)) {
                                 <div class="invalid-feedback">
                                     Zip code required.
@@ -228,11 +228,11 @@
                             <input type="text" class="form-control" id="cc-name" placeholder=""
                                 required 
                                 formControlName="cardName"
-                                [class.is-invalid]="submitted() && checkoutForm.get('cardName')?.invalid
+                                [class.is-invalid]="checkoutForm.get('cardName')?.invalid
                                 && (checkoutForm.get('cardName')?.touched || checkoutForm.get('cardName')?.dirty)">
                             <small class="text-muted">Full name as displayed on card</small>
 
-                            @if(submitted() && checkoutForm.get('cardName')?.invalid
+                            @if(checkoutForm.get('cardName')?.invalid
                                 && (checkoutForm.get('cardName')?.touched || checkoutForm.get('cardName')?.dirty)) {
                                 <div class="invalid-feedback">
                                     Name on card is required
@@ -244,9 +244,9 @@
                             <input type="text" class="form-control" id="cc-number" placeholder=""
                                 required
                                 formControlName="cardNumber"
-                                [class.is-invalid]="submitted() && checkoutForm.get('cardNumber')?.invalid
+                                [class.is-invalid]="checkoutForm.get('cardNumber')?.invalid
                                 && (checkoutForm.get('cardNumber')?.touched || checkoutForm.get('cardNumber')?.dirty)">
-                                @if(submitted() && checkoutForm.get('cardNumber')?.invalid
+                                @if(checkoutForm.get('cardNumber')?.invalid
                                     && (checkoutForm.get('cardNumber')?.touched || checkoutForm.get('cardNumber')?.dirty)) {
                                     <div class="invalid-feedback">
                                         Credit card number is required
@@ -260,10 +260,10 @@
                             <input type="text" class="form-control" id="cc-expiration" placeholder=""
                                 required
                                 formControlName="expiration"
-                                [class.is-invalid]="submitted() && checkoutForm.get('expiration')?.invalid
+                                [class.is-invalid]="checkoutForm.get('expiration')?.invalid
                                 && (checkoutForm.get('expiration')?.touched || checkoutForm.get('expiration')?.dirty)">
                             
-                            @if(submitted() && checkoutForm.get('expiration')?.invalid
+                            @if(checkoutForm.get('expiration')?.invalid
                                 && (checkoutForm.get('expiration')?.touched || checkoutForm.get('expiration')?.dirty)) {
                                 <div class="invalid-feedback">
                                     Expiration date required
@@ -275,16 +275,21 @@
                             <input type="text" class="form-control" id="cc-cvv" placeholder=""
                                 required
                                 formControlName="cvv"
-                                [class.is-invalid]="submitted() && checkoutForm.get('cvv')?.invalid
+                                [class.is-invalid]="checkoutForm.get('cvv')?.invalid
                                 && (checkoutForm.get('cvv')?.touched || checkoutForm.get('cvv')?.dirty)">
-                            @if(submitted() && checkoutForm.get('cvv')?.invalid
+                            @if(checkoutForm.get('cvv')?.invalid
                                 && (checkoutForm.get('cvv')?.touched || checkoutForm.get('cvv')?.dirty)) {
                                 <div class="invalid-feedback">
                                     Security code required
                                 </div>
                             }
                         </div>
-                    </div>
+                    </div>                    
+                    @if(shoppingCart() == null || shoppingCart()?.items?.length == 0) {
+                        <div class="text-danger">
+                            Your cart is empty!
+                        </div>
+                    }
                     <hr class="mb-4">
                     <button class="btn btn-primary btn-lg btn-block" type="submit">Checkout Order</button>
                 </form>
