@@ -16,27 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 // Application services
 var assembly = typeof(Program).Assembly;
 builder.Services.AddCarter();
-//builder.Services.AddMediator(cfg => {
-//    cfg.RegisterServicesFromAssembly(assembly);    
-//    cfg.AddOpenBehavior(typeof(ValidationBehavior<,>)); // Adding ValidationBehavior to MediatR pipeline
-//    cfg.AddOpenBehavior(typeof(LoggingBehavior<,>)); // Adding LoggingBehavior to MediatR pipeline
-//});
-
-//var assemblies = new[]
-//{
-//    typeof(StoreBasketCommand).Assembly,          // Command definitions
-//    typeof(StoreBasketCommandHandler).Assembly,   // Handlers
-//    typeof(GetBasketQueryHandler).Assembly
-//    //typeof(ValidationBehavior<,>).Assembly       // Pipeline behaviors
-//};
-//builder.Services.AddCQRS(
-//    assemblies
-//);
-//builder.Services.AddMediator();
-
-//builder.Services.AddMediator();
-//builder.Services.AddCQRS(assembly);
-//builder.Services.AddMediator();
 
 builder.Services.AddMediator(options =>
 {

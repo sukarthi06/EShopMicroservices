@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { BasketService } from '../../../core/services/basket-service';
 import { BasketCheckoutModel, ShoppingCartModel } from '../../../types/basket';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
@@ -13,12 +13,13 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 export class Checkout implements OnInit {
 
   private basketService = inject(BasketService);
+  private router = inject(Router);
 
   protected checkoutForm: FormGroup;
   protected shoppingCart = signal<ShoppingCartModel | null>(null);
   protected totalPrice = signal<number>(0);
   protected basketCheckout = signal<BasketCheckoutModel | null>(null);
-  protected submitted = signal<boolean>(false);
+  
   // List of US states
   protected states: string[] = [
     'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 
@@ -36,7 +37,7 @@ export class Checkout implements OnInit {
     this.checkoutForm = new FormGroup({
       firstName: new FormControl('',Validators.required),
       lastName: new FormControl('',Validators.required),
-      email: new FormControl('',Validators.email),
+      email: new FormControl('',[Validators.email, Validators.required]),
       addressLine: new FormControl('',Validators.required),
       country: new FormControl('',Validators.required),
       state: new FormControl('',Validators.required),
@@ -57,14 +58,13 @@ export class Checkout implements OnInit {
   }
 
   async checkoutBasket() {
-    // this.submitted.set(true);
-
-    // if (this.checkoutForm.invalid) {
-    //   this.checkoutForm.markAllAsTouched();
-    //   return;
-    // }
+    
+    if (this.checkoutForm.invalid) {
+      this.checkoutForm.markAllAsTouched();
+      return;
+    }
     const cart = this.shoppingCart();    
-    if (!cart) return;
+    if (!cart || cart.items.length === 0) return;
 
     const formValue = this.checkoutForm.getRawValue();
     const checkoutModel: BasketCheckoutModel = {
@@ -87,14 +87,11 @@ export class Checkout implements OnInit {
     
     await this.basketService.checkoutBasket({ BasketCheckoutDto: checkoutModel }).then(response => {
       if (response.isSuccess) {
-        // Handle successful checkout (e.g., navigate to confirmation page)
-        console.log('Checkout successful');
+        this.router.navigate(['/confirmation/1']);
       } else {
-        // Handle checkout failure (e.g., show error message)
-        console.log('Checkout failed');
+        this.router.navigate(['/confirmation/2']);
       }
     });
-        
   }
 
 }

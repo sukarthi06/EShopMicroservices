@@ -1,0 +1,15 @@
+<div class="container contact-container">
+    <h1 class="mt-4 mb-3">
+        Confirmation
+    </h1>
+    <hr />
+    @if (message && message.length > 0) {
+        <h3>{{ message }}</h3>
+    }
+    <br />
+    <p>If you have any further questions, you can contact us 877-000-0000.</p>
+    <br />
+    @if (showShoppingLink) {
+        <p><a class="btn btn-lg btn-block btn-success col-sm-12  col-md-6" routerLink="/products">Continue Shopping</a></p>
+    }
+</div>
