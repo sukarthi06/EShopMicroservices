@@ -1,7 +1,7 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { BasketService } from '../../../core/services/basket-service';
 import { BasketCheckoutModel, ShoppingCartModel } from '../../../types/basket';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 @Component({
@@ -13,6 +13,7 @@ import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angula
 export class Checkout implements OnInit {
 
   private basketService = inject(BasketService);
+  private router = inject(Router);
 
   protected checkoutForm: FormGroup;
   protected shoppingCart = signal<ShoppingCartModel | null>(null);
@@ -84,16 +85,13 @@ export class Checkout implements OnInit {
       paymentMethod: 1 // Assuming 1 represents a specific payment method
     };
     
-    // await this.basketService.checkoutBasket({ BasketCheckoutDto: checkoutModel }).then(response => {
-    //   if (response.isSuccess) {
-    //     // Handle successful checkout (e.g., navigate to confirmation page)
-    //     console.log('Checkout successful');
-    //   } else {
-    //     // Handle checkout failure (e.g., show error message)
-    //     console.log('Checkout failed');
-    //   }
-    // });
-        
+    await this.basketService.checkoutBasket({ BasketCheckoutDto: checkoutModel }).then(response => {
+      if (response.isSuccess) {
+        this.router.navigate(['/confirmation/1']);
+      } else {
+        this.router.navigate(['/confirmation/2']);
+      }
+    });
   }
 
 }
