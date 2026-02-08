@@ -19,6 +19,7 @@ export class Checkout implements OnInit {
   protected shoppingCart = signal<ShoppingCartModel | null>(null);
   protected totalPrice = signal<number>(0);
   protected basketCheckout = signal<BasketCheckoutModel | null>(null);
+  protected isCheckingout = false;
   
   // List of US states
   protected states: string[] = [
@@ -39,6 +40,7 @@ export class Checkout implements OnInit {
       lastName: new FormControl('',Validators.required),
       email: new FormControl('',[Validators.email, Validators.required]),
       addressLine: new FormControl('',Validators.required),
+      addressLine2: new FormControl(''),
       country: new FormControl('',Validators.required),
       state: new FormControl('',Validators.required),
       zipCode: new FormControl('',Validators.required),
@@ -74,7 +76,7 @@ export class Checkout implements OnInit {
       firstName: formValue.firstName,
       lastName: formValue.lastName,
       emailAddress: formValue.email,
-      addressLine: formValue.addressLine,
+      addressLine: formValue.addressLine + (formValue.addressLine2 ? `, ${formValue.addressLine2}` : ''),
       country: formValue.country,
       state: formValue.state,
       zipCode: formValue.zipCode,
@@ -85,8 +87,12 @@ export class Checkout implements OnInit {
       paymentMethod: 1 // Assuming 1 represents a specific payment method
     };
     
+    this.isCheckingout = true;
+
     await this.basketService.checkoutBasket({ BasketCheckoutDto: checkoutModel }).then(response => {
-      if (response.isSuccess) {
+      this.isCheckingout = false;
+      if (response.isSuccess) {        
+        this.basketService.basketCount.set(0);
         this.router.navigate(['/confirmation/1']);
       } else {
         this.router.navigate(['/confirmation/2']);

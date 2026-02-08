@@ -35,6 +35,7 @@ public sealed class CheckoutBasketCommandHandler(IBasketRepository repository, I
 
         var eventMessage = command.BasketCheckoutDto.Adapt<BasketCheckoutEvent>();
         eventMessage.TotalPrice = basket.TotalPrice;
+        eventMessage.OrderItems = basket.Items.Adapt<List<OrderItem>>();
 
         await publishEndpoint.Publish(eventMessage, cancellationToken);
 

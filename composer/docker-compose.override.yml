@@ -131,10 +131,14 @@ services:
       - MessageBroker__Host=amqp://ecommerce-mq:5672
       - MessageBroker__UserName=guest
       - MessageBroker__Password=guest
-      - FeatureManagement__OrderFullfilment=false      
+      - FeatureManagement__OrderFullfilment=true     
     depends_on:
-      - orderdb
-      - messagebroker
+      orderdb:
+        condition: service_started
+      messagebroker:
+        condition: service_started
+      distributedcache:
+        condition: service_started
     ports:
       - "6014:8080"
       - "6063:8081"

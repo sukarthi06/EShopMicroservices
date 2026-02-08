@@ -18,7 +18,18 @@ export class App {
    *
    */
   async ngOnInit(): Promise<void> {
-    this.basketService.loadUserBasket();
+    await this.loadUserBasket();
+  }
+
+  async loadUserBasket() {
+
+    const isBasketExists = (await this.basketService.checkBasket("kart123")).isSuccess; //localStorage.getItem('userName') || '');
+    if(isBasketExists) {
+      await this.basketService.loadUserBasket();
+    } else {
+      this.basketService.basketCount.set(0);
+    }
+
   }
   
 }
