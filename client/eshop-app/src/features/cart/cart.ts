@@ -17,7 +17,18 @@ export class Cart implements OnInit {
   protected totalPrice = signal<number>(0);
   
   async ngOnInit(): Promise<void> {
-    this.basketService.loadUserBasket().then(cart => {
+    await this.processBasket();
+  }
+
+  async processBasket(): Promise<void> {
+
+    const isBasketExists = (await this.basketService.checkBasket("kart123")).isSuccess; //localStorage.getItem('userName') || '');
+    if(!isBasketExists) {
+      this.cart.set(null);
+      this.totalPrice.set(0);
+      return;
+    }
+    await this.basketService.loadUserBasket().then(cart => {
       this.cart.set(cart);
       this.totalPrice.set(cart.items.reduce((total, item) => total + (item.price * item.quantity), 0));
     });
