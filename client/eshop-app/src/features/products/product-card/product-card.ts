@@ -17,6 +17,7 @@ export class ProductCard implements OnInit {
   protected basketService = inject(BasketService);
   protected imageService = inject(ImageService);
   protected imageUrl = signal<string>('');
+  protected isLoading = false;
 
   private router = inject(Router);
 
@@ -26,6 +27,7 @@ export class ProductCard implements OnInit {
 
   async addToCart(): Promise<void> {
 
+    this.isLoading = true;
     await this.basketService.addItemToBasket({
       productId: this.product.id,
       productName: this.product.name,
@@ -33,6 +35,7 @@ export class ProductCard implements OnInit {
       color: 'Black',
       price: this.product.price
     }).then(() => {
+      this.isLoading = false;
       this.router.navigate(['/cart']);
     });
 

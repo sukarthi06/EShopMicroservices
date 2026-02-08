@@ -27,8 +27,14 @@
       <div style="width: 50%;margin-left: 5px;">
         <button type="button"
                 class="btn btn-success btn-block"
+                [disabled]="isLoading"
                 (click)="addToCart()">
-          Add to Cart
+                @if(isLoading) {
+                  <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                  Adding...
+                } @else {
+                  Add to Cart
+                }
         </button>
       </div>
     </div>

@@ -118,7 +118,7 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="address">Address</label>
+                        <label for="addressLine">Address</label>
                         <input type="text" class="form-control" id="addressLine" placeholder="1234 Main St" 
                             required
                             formControlName="addressLine"
@@ -134,8 +134,8 @@
                     </div>
 
                     <div class="mb-3">
-                        <label for="address2">Address 2 <span class="text-muted">(Optional)</span></label>
-                        <input type="text" class="form-control" id="address2" formControlName="address2"
+                        <label for="addressLine2">Address 2 <span class="text-muted">(Optional)</span></label>
+                        <input type="text" class="form-control" id="addressLine2" formControlName="addressLine2"
                          placeholder="Apartment or suite">
                     </div>
 
@@ -291,7 +291,14 @@
                         </div>
                     }
                     <hr class="mb-4">
-                    <button class="btn btn-primary btn-lg btn-block" type="submit">Checkout Order</button>
+                    <button class="btn btn-primary btn-lg btn-block" type="submit" [disabled]="isCheckingout">
+                        @if(isCheckingout) {
+                          <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                          Processing...
+                        } @else {
+                          Checkout Order
+                        }
+                    </button>
                 </form>
             </div>
         </div>
