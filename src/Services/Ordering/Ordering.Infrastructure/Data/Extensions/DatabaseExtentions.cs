@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Ordering.Infrastructure.Data.Extensions;
@@ -10,9 +11,10 @@ public static class DatabaseExtentions
 
         var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        context.Database.MigrateAsync().GetAwaiter().GetResult();
-        
-        if(app.Configuration.GetSection("SEED_DATA").Value!.ToLower() == "true")
+        await context.Database.MigrateAsync();//.GetAwaiter().GetResult();
+
+        bool seed = app.Configuration.GetValue<bool>("SEED_DATA");
+        if (seed)
             await SeedAsync(context);
     }
 
