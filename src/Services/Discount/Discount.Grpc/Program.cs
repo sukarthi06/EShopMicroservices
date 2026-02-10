@@ -35,6 +35,9 @@ builder.Services.AddGrpcHealthChecks();
 builder.Services.AddHealthChecks()
     .AddCheck("Self", () => HealthCheckResult.Healthy("Service is running"));
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 var app = builder.Build();
 
 //app.MapDefaultEndpoints();

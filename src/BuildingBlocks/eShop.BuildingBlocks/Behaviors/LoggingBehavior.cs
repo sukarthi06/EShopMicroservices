@@ -15,8 +15,7 @@ public sealed class LoggingBehavior<TRequest, TResponse>(
         CancellationToken cancellationToken)
     {
         logger.LogInformation(
-            "[START] Date="+ DateTime.Now.ToString("MM/dd/yyyy HH:mm") 
-                +" Handle request={Request} - Response={Response} - RequestData={RequestData}",
+            "[START] Handle request={Request} - Response={Response} - RequestData={RequestData}",
             typeof(TRequest).Name,
             typeof(TResponse).Name,
             request);

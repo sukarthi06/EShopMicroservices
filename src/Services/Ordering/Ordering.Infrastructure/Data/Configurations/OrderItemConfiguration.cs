@@ -10,10 +10,10 @@ public class OrderItemConfiguration : IEntityTypeConfiguration<OrderItem>
         builder.Property(oi => oi.Id).HasConversion(
                                    orderItemId => orderItemId.Value,
                                    dbId => OrderItemId.Of(dbId));
-
-        builder.HasOne<Product>()
-            .WithMany()
-            .HasForeignKey(oi => oi.ProductId);
+                
+        builder.Property(oi => oi.ProductId).HasConversion(
+                                   productId => productId.Value,
+                                   dbId => ProductId.Of(dbId)).IsRequired();
 
         builder.Property(oi => oi.Quantity).IsRequired();
 
