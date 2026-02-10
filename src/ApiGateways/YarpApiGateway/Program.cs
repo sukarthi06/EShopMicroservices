@@ -33,6 +33,9 @@ builder.Services.AddRateLimiter(rateLimiterOptions =>
     });
 });
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 var app = builder.Build();
 
 //if (Environment.GetEnvironmentVariable("ASPIRE_ENABLED") == "true")

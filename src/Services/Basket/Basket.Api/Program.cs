@@ -2,9 +2,7 @@ using Basket.Api.Basket.StoreBasket;
 using BuildingBlocks.Messaging.MassTransit;
 using Discount.Grpc;
 using eShop.BuildingBlocks.Exceptions.Handler;
-//using eShop.BuildingBlocks.CQRS;
 using HealthChecks.UI.Client;
-using Mediator;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 
@@ -75,6 +73,9 @@ builder.Services.AddExceptionHandler<CustomExceptionHandler>();
 builder.Services.AddHealthChecks()
 .AddNpgSql(builder.Configuration.GetConnectionString("BasketDb")!)
 .AddRedis(builder.Configuration.GetConnectionString("Redis")!);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
 
 var app = builder.Build();
 

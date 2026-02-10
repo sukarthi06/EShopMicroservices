@@ -31,24 +31,32 @@ services:
     build:
       context: ..
       dockerfile: src/Services/Discount/Discount.Grpc/Dockerfile
+    logging:
+      driver: "json-file"     
 
   ordering.api:
     image: ${DOCKER_REGISTRY-}orderingapi
     build:
       context: ..
       dockerfile: src/Services/Ordering/Ordering.Api/Dockerfile
+    logging:
+      driver: "json-file"
 
   yarpapigateway:
     image: ${DOCKER_REGISTRY-}yarpapigateway
     build:
       context: ..
       dockerfile: src/ApiGateways/YarpApiGateway/Dockerfile
+    logging:
+      driver: "json-file"
 
   eshop.ui:
     image: ${DOCKER_REGISTRY-}eshopui
     build:
       context: ../client/eshop-app
       dockerfile: Dockerfile
+    logging:
+      driver: "json-file"
 
 volumes:
   postgres_catalog:
